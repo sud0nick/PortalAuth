@@ -1,0 +1,507 @@
+<!-- Portal Auth by sud0nick (C) 2016 -->
+<style>
+.PA_topbuffer {
+	margin-top: 13px;
+}
+</style>
+<div class="row" id="portalAuthModule" ng-controller="PortalAuthController">
+	<div class="col-md-5">
+		<div class="container-fluid">
+			<div class="row">
+				<div class="panel panel-default">
+					<div class="panel-heading">
+						<table style="width: 100%">
+							<tr><td align="left">
+								<h3 class="panel-title">Portal Auth Status</h3>
+							</td><td align="right">
+								<span class="panel-title">
+									
+								</span>
+							</td></tr>
+						</table>
+					</div>
+					<div class="panel-body">
+						<div class="pull-right">
+							<button type="button" class="btn" data-toggle="modal" data-target="#pa_viewLogInfo" ng-click="readLog('status.help','help');">?</button>
+						</div>
+						<div>
+							<span ng-show="tServerConfig && online" ng-hide="!tServerConfig && !online">
+								<strong> {{ portalStatus }} </strong><br />
+								<strong> PASS Status:</strong> {{ passStatus }}
+							</span>
+							<span ng-show="!online" ng-hide="online">
+								<span style="color:red"><strong>WiFi Pineapple must be online to use PortalAuth</strong></span>
+							</span>
+							<span ng-show="!tServerConfig" ng-hide="tServerConfig">
+								<strong>Both <span style='color:red'>Test Site</span> and <span style='color:red'>Data Expected</span> must be configured before using Portal Auth</strong><br />
+								*Click the help icon in the Settings window for more information.
+							</span>
+						</div><br />
+						<div ng-show="portalExists && tServerConfig" ng-hide="!portalExists || !tServerConfig">
+							<button type="button" class="btn btn-success" data-toggle="modal" data-target="#clonerOptions" ng-click="prepareOptsModal();">Clone Portal</button>
+							<br /><br />
+						</div>
+						<div>
+							<button type="button" class="btn btn-info" data-toggle="modal" data-target="#pa_viewLogInfo" ng-click="readLog(version, 'changelog');">View Auth Log</button>
+						</div><br />
+					</div>
+				</div>
+			</div>
+			<div class="row">
+				<div class="panel panel-default">
+					<div class="panel-heading">
+						<h3 class="panel-title">Error Logs</h3>
+					</div>
+					<div class="panel-body">
+						<table class="table">
+							<thead>
+								<tr>
+									<th>Log Name</th>
+									<th>Actions</th>
+							</thead>
+							<tbody>
+								<tr ng-repeat="log in errorlogs">
+									<td>{{ log }}</td>
+									<td>
+										<button type="button" class="btn btn-sm btn-info" data-toggle="modal" data-target="#pa_viewLogInfo" ng-click="readLog(log, 'error');">View</button>
+										<button type="button" class="btn btn-sm btn-danger" ng-click="deleteLog(log);">Delete</button>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="col-md-5">
+		<div class="panel panel-default">
+			<div class="panel-heading">
+				<table style="width: 100%">
+					<tr><td align="left">
+						<h3 class="panel-title">Settings
+						<img ng-show="showSettingsThrobber" ng-hide="!showSettingsThrobber" src='/img/throbber.gif'/></h3>
+					</td><td align="right">
+						<button type="button" class="btn btn-success" ng-click="updateSettings('default');">Use Default</button>
+						<button type="button" class="btn btn-success" ng-click="updateSettings();">Save</button>
+					</td></tr>
+				</table>
+			</div>
+			<div class="panel-body">
+				<div class="container-fluid">
+					<div class="pull-right">
+						<button type="button" class="btn" data-toggle="modal" data-target="#pa_viewLogInfo" ng-click="readLog('settings.help','help');">?</button>
+					</div>
+					<div class="form-group">
+						<label class="col-md-5 control-label">Test Site</label>
+						<div class="col-md-10">
+							<input type="text" ng-model="testSite" class="form-control">
+						</div>
+					</div>
+					<div class="form-group">
+						<label class="col-md-5 control-label PA_topbuffer">Data Expected</label>
+						<div class="col-md-10">
+							<input type="text" ng-model="dataExpected" class="form-control">
+						</div>
+					</div>
+					<div class="form-group">
+						<label class="col-md-5 control-label PA_topbuffer">HTML Tags</label>
+						<div class="col-md-10">
+							<input type="text" ng-model="htmlTags" class="form-control">
+						</div>
+					</div>
+					<div class="form-group">
+						<label class="col-md-5 control-label PA_topbuffer">Portal Archive</label>
+						<div class="col-md-10">
+							<input type="text" ng-model="portalArchive" class="form-control">
+						</div>
+					</div>
+					<div class="form-group">
+						<div class="col-md-10 PA_topbuffer">
+							<label>MAC Collection <input type="checkbox" ng-model="macCollection"/></label>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<div id="clonerOptions" class="modal fade" role="dialog">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal">&times;</button>
+					<h3>Cloner Options</h3>
+				</div>
+				<div class="modal-body">
+					<div class="container-fluid">
+						<div class="pull-right">
+							<button type="button" class="btn" data-toggle="modal" data-target="#pa_viewLogInfo" ng-click="readLog('cloner.help','help');">?</button>
+						</div>
+						
+						<div style="text-align: center" ng-show="showClonerThrobber" ng-hide="!showClonerThrobber">
+							<h4>Cloning Portal</h4>
+							<p>Please do not close this window until cloning has finished.<br />This can take a few minutes.</p>
+							<img src='/img/throbber.gif'/>
+						</div>
+						
+						<form role="form">
+							<div class="form-group">
+								<label class="col-md-5 control-label">Portal Name</label>
+								<div class="col-md-12">
+									<input type="text" ng-model="cloner_portalName" class="form-control">
+								</div>
+							</div>
+							<div class="form-group">
+								<div class="col-md-12 PA_topbuffer">
+									<label>Injection Set</label>
+									<select class="form-control" ng-model="cloner_injectionSet" ng-options="set for set in injectionSets"></select>
+								</div>
+							</div>
+							<div class="form-group">
+								<div class="col-md-12 PA_topbuffer">
+									<div class="col-md-6">
+										<label class="checkbox-inline">
+											<input type="checkbox" ng-model="cloner_stripLinks"><strong>Strip Links</strong>
+										</label>
+									</div>
+									<div class="col-md-6">
+										<label class="checkbox-inline">
+											<input type="checkbox" ng-model="cloner_injectJS"><strong>Inject JS</strong>
+										</label>
+									</div>
+								</div>
+								<div class="col-md-12">
+									<div class="col-md-6">
+										<label class="checkbox-inline">
+											<input type="checkbox" ng-model="cloner_stripJS"><strong>Strip Inline JS</strong>
+										</label>
+									</div>
+									<div class="col-md-6">
+										<label class="checkbox-inline">
+											<input type="checkbox" ng-model="cloner_injectCSS"><strong>Inject CSS</strong>
+										</label>
+									</div>
+								</div>
+								<div class="col-md-12">
+									<div class="col-md-6">
+										<label class="checkbox-inline">
+											<input type="checkbox" ng-model="cloner_stripCSS"><strong>Strip Inline CSS</strong>
+										</label>
+									</div>
+									<div class="col-md-6">
+										<label class="checkbox-inline">
+											<input type="checkbox" ng-model="cloner_injectHTML"><strong>Inject HTML</strong>
+										</label>
+									</div>
+								</div>
+								<div class="col-md-12">
+									<div class="col-md-6">
+										<label class="checkbox-inline">
+											<input type="checkbox" ng-model="cloner_stripForms"><strong>Strip Forms</strong>
+										</label>
+									</div>
+									<div class="col-md-6">
+										<label class="checkbox-inline">
+											<input type="checkbox" ng-model="cloner_activate"><strong>Activate Portal</strong>
+										</label>
+									</div>
+								</div>
+								<div class="col-md-12" style="margin-top: 20px">
+									<button class="btn btn-success btn-lg btn-block" ng-click="clonePortal();">Clone Portal</button>
+								</div>
+							</div>
+						</form>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<div id="pa_viewLogInfo" class="modal fade" role="dialog">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal">&times;</button>
+					<h3>{{ currentLogTitle }}</h3>
+				</div>
+				<div class="modal-body">
+					<p ng-bind-html="currentLogData"></p>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<!--
+		This block of JavaScript is used to allow tab characters within a textarea.
+		Without this it would be crazy annoying to format code properly.
+	-->
+	<script>
+		$('#portalAuthModule').delegate('.pa_codeEditorContainer', 'keydown', function(e){
+			var keyCode = e.keyCode || e.which;
+
+			if (keyCode == 9) {
+				e.preventDefault();
+				var start = $(this).get(0).selectionStart;
+				var end = $(this).get(0).selectionEnd;
+
+				// set textarea value to: text before caret + tab + text after caret
+				$(this).val($(this).val().substring(0, start) + "\t" + $(this).val().substring(end));
+
+				// put caret at right position again
+				$(this).get(0).selectionEnd = start + 1;
+			}
+		});
+	</script>
+	
+	<div id="pa_editCode" class="modal fade" role="dialog">
+		<div class="modal-dialog" style="width: 800px">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal">&times;</button>
+					<div style="text-align: left; display:inline-block">
+						<button type="button" class="btn btn-danger" ng-click="backupEditorCode('pass');">Backup</button>
+						<button type="button" class="btn btn-info" ng-click="restoreEditorCode('pass');">Restore</button>
+						<button type="button" class="btn btn-success" ng-click="saveEditorCode('pass');">Save</button>
+					</div>
+				</div>
+				<div class="modal-body">
+					<textarea class="pa_codeEditorContainer" ng-model="editorCode" style="height: 700px; width: 100%" wrap="off" spellcheck="false"></textarea>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<div ng-show="tServerConfig" ng-hide="!tServerConfig">
+	<div class="col-md-10">
+		<div class="panel panel-default">
+			<div class="panel-heading">
+				<a href="javascript:;" data-toggle="collapse" data-target="#PA_payload_collapse"><h3 class="panel-title">Payload</h3></a>
+			</div>
+			<div class="panel-body collapse" id="PA_payload_collapse">
+				<div style="text-align:center">
+					<div class="btn-group" data-toggle="buttons">
+						<button type="button" class="btn btn-primary" ng-class="{'active' : showPASSDiv}" ng-click="swapDiv('pass');">PASS</button>
+						<button type="button" class="btn btn-primary" ng-class="{'active' : showNetClientDiv}" ng-click="swapDiv('netclient');">NetClient</button>
+					</div>
+				</div>
+				
+				<div class="col-md-19" ng-show="showPASSDiv" ng-hide="!showPASSDiv">
+					<table style="width: 100%">
+					<tr><td align="left">
+						<button type="button" class="btn-sm btn-success" ng-class="{'btn-danger' : passEnabled}" ng-click="toggleServer(passStatus);">{{ passButton }} Server</button>
+						<button type="button" class="btn-sm btn-primary" data-toggle="modal" data-target="#pa_editCode" ng-click="getCode();">Edit Server</button>
+					</td><td align="right">
+						<button type="button" class="btn" data-toggle="modal" data-target="#pa_viewLogInfo" ng-click="readLog('pass.help','help');">?</button>
+					</td></tr>
+					</table>
+					<br /><br />
+                    <div>
+                        <h4>Activity Log</h4>
+                        <textarea ng-model="activityLogData" style="width: 100%; height: 220px" readonly></textarea>
+						<div style="text-align: right">
+							<button type="button" class="btn btn-danger" ng-click="clearLog('activity');">Clear Log</button>
+							<button type="button" class="btn btn-info" ng-click="downloadLog('activity');">Download</button>
+						</div>
+                    </div>
+					<br />
+                    <div>
+                        <h4>Available Targets</h4>
+                        <textarea ng-model="availableTargets" style="width: 100%; height: 220px" readonly></textarea>
+						<div style="text-align: right">
+							<button type="button" class="btn btn-danger" ng-click="clearLog('targets');">Clear Log</button>
+							<button type="button" class="btn btn-info" ng-click="downloadLog('targets');">Download</button>
+						</div>
+                    </div>
+				</div>
+				<div class="col-md-19" ng-show="showNetClientDiv" ng-hide="!showNetClientDiv">
+					<div class="row">
+						<div class="col-md-5">
+							<h3>Windows Payload</h3>
+							<form id="pa_ImportWindowsPayloadForm" payloadInput="pa_importWindowsPayload">
+								<input type="file" name="importWindowsPayload" id="pa_importWindowsPayload" accept="application/x-compressed" />
+								<input type="hidden" name="_csrfToken" id="pa_winPayloadToken" value="" /><br /><br />
+								<button class="pa_button" id="pa_uploadWindowsPayload" type="submit">Upload Payload</button>
+							</form>
+						</div>
+						<div class="col-md-5">
+							<h3>OS X Payload</h3>
+							<form id="pa_ImportOSXPayloadForm" payloadInput="pa_importOSXPayload">
+								<input type="file" name="importOSXPayload" id="pa_importOSXPayload" accept="application/x-compressed" />
+								<input type="hidden" name="_csrfToken" id="pa_osxPayloadToken" value="" /><br /><br />
+								<button class="pa_button" id="pa_uploadOSXPayload" type="submit">Upload Payload</button>
+							</form>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-md-5">
+							<h3>Android Payload</h3>
+							<form id="pa_ImportAndroidPayloadForm" payloadInput="pa_importAndroidPayload">
+								<input type="file" name="importAndroidPayload" id="pa_importAndroidPayload" accept="application/x-compressed" />
+								<input type="hidden" name="_csrfToken" id="pa_androidPayloadToken" value="" /><br /><br />
+								<button class="pa_button" id="pa_uploadAndroidPayload" type="submit">Upload Payload</button>
+							</form>
+						</div>
+						<div class="col-md-5">
+							<h3>iOS Payload</h3>
+							<form id="pa_ImportiOSPayloadForm" payloadInput="pa_importiOSPayload">
+								<input type="file" name="importiOSPayload" id="pa_importiOSPayload" accept="application/x-compressed" />
+								<input type="hidden" name="_csrfToken" id="pa_iosPayloadToken" value="" /><br /><br />
+								<button class="pa_button" id="pa_uploadiOSPayload" type="submit">Upload Payload</button>
+							</form>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<div class="col-md-10">
+		<div class="panel panel-default">
+			<div class="panel-heading">
+				<a href="javascript:;" data-toggle="collapse" data-target="#pa_injections_collapse"><h3 class="panel-title">Injection Sets</h3></a>
+			</div>
+			<div class="panel-body collapse" id="pa_injections_collapse">
+				<div style="text-align:center">
+					<div class="btn-group" data-toggle="buttons">
+						<button type="button" class="btn btn-primary" ng-class="{'active' : showInjectManagerDiv}" ng-click="swapDiv('injectManager');">Manage Injects</button>
+						<button type="button" class="btn btn-primary" ng-class="{'active' : showInjectEditorDiv}" ng-click="swapDiv('injectEditor');">Edit Injects</button>
+					</div>
+				</div>
+					
+				<div class="col-md-19" ng-show="showInjectManagerDiv" ng-hide="!showInjectManagerDiv">
+					<br />
+					<div>
+						<button type="button" class="btn btn-success" ng-click="openNewInjectSetDiv">New Injection Set</button>
+						<button type="button" class="btn btn-success" ng-click="openImportInjectSetDiv">Import Injection Set</button>
+						<hr />
+					</div>
+					<div class="table-responsive table-dropdown">
+						<table class="table">
+							<thead>
+								<tr>
+									<th>Injection Set</th>
+									<th>Actions</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr ng-repeat="set in injectionSets" ng-if="set != 'Select...'">
+									<td>{{ set }}</td>
+									<td>
+										<button type="button" class="btn btn-sm btn-info" ng-click="downloadInjectSet(set);">Download</button>
+										<button type="button" class="btn btn-sm btn-danger" ng-click="deleteInjectSet(set);">Delete</button>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+					
+				<div class="col-md-19" ng-show="showInjectEditorDiv" ng-hide="!showInjectEditorDiv">
+					<div style="text-align: center">
+						<h3>Current Injection Set</h3>
+						<select ng-model="editor_injectionSet" ng-options="set for set in injectionSets" ng-change="getInjectCode(editor_injectionSet)"></select>
+					</div>
+					<div class="col-md-12">
+						<table style="width: 100%"><tr><td>
+							<h3>InjectJS</h3>
+						</td><td align="right">
+							<button type="button" class="btn" data-toggle="modal" data-target="#pa_viewLogInfo" ng-click="readLog('injectjs.help','help');">?</button>
+						</td></tr>
+						</table>
+						<textarea class="pa_codeEditorContainer" ng-model="pa_injectJSEditor" style="height: 300px; width: 100%" wrap="off" spellcheck="false"></textarea>
+						<table style="width: 100%">
+							<tr><td>
+								<button type="button" class="btn btn-danger" ng-click="backupEditorCode('injectJS');">Backup</button>
+								<button type="button" class="btn btn-info" ng-click="restoreEditorCode('injectJS');">Restore</button>
+							</td><td align="right">
+								<button type="button" class="btn btn-success" ng-click="saveEditorCode('injectJS');">Save JS</button>
+							</td></tr>
+						</table>
+					</div><br />
+					
+					<div class="col-md-12">
+						<table style="width: 100%"><tr><td>
+							<h3>InjectCSS</h3>
+						</td><td align="right">
+							<button type="button" class="btn" data-toggle="modal" data-target="#pa_viewLogInfo" ng-click="readLog('injectcss.help','help');">?</button>
+						</td></tr>
+						</table>
+						<textarea class="pa_codeEditorContainer" ng-model="pa_injectCSSEditor" style="height: 300px; width: 100%" wrap="off" spellcheck="false"></textarea>
+						<table style="width: 100%">
+							<tr><td>
+								<button type="button" class="btn btn-danger" ng-click="backupEditorCode('injectCSS');">Backup</button>
+								<button type="button" class="btn btn-info" ng-click="restoreEditorCode('injectCSS');">Restore</button>
+							</td><td align="right">
+								<button type="button" class="btn btn-success" ng-click="saveEditorCode('injectCSS');">Save CSS</button>
+							</td></tr>
+						</table>
+					</div><br />
+					
+					<div class="col-md-12">
+						<table style="width: 100%"><tr><td>
+							<h3>InjectHTML</h3>
+						</td><td align="right">
+							<button type="button" class="btn" data-toggle="modal" data-target="#pa_viewLogInfo" ng-click="readLog('injecthtml.help','help');">?</button>
+						</td></tr>
+						</table>
+						<textarea class="pa_codeEditorContainer" ng-model="pa_injectHTMLEditor" style="height: 300px; width: 100%" wrap="off" spellcheck="false"></textarea>
+						<table style="width: 100%">
+							<tr><td>
+								<button type="button" class="btn btn-danger" ng-click="backupEditorCode('injectHTML');">Backup</button>
+								<button type="button" class="btn btn-info" ng-click="restoreEditorCode('injectHTML');">Restore</button>
+							</td><td align="right">
+								<button type="button" class="btn btn-success" ng-click="saveEditorCode('injectHTML');">Save HTML</button>
+							</td></tr>
+						</table>
+					</div><br />
+					
+					<div class="col-md-12">
+						<table style="width: 100%"><tr><td>
+							<h3>Auth PHP</h3>
+						</td><td align="right">
+							<button type="button" class="btn" data-toggle="modal" data-target="#pa_viewLogInfo" ng-click="readLog('authphp.help','help');">?</button>
+						</td></tr>
+						</table>
+						<textarea class="pa_codeEditorContainer" ng-model="pa_injectAuthPHPEditor" style="height: 300px; width: 100%" wrap="off" spellcheck="false"></textarea>
+						<table style="width: 100%">
+							<tr><td>
+								<button type="button" class="btn btn-danger" ng-click="backupEditorCode('auth');">Backup</button>
+								<button type="button" class="btn btn-info" ng-click="restoreEditorCode('auth');">Restore</button>
+							</td><td align="right">
+								<button type="button" class="btn btn-success" ng-click="saveEditorCode('auth');">Save Auth PHP</button>
+							</td></tr>
+						</table>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+		
+	<div class="col-md-10">
+		<div class="panel panel-default">
+			<div class="panel-heading">
+				<a href="javascript:;" data-toggle="collapse" data-target="#pa_collapse_changelog"><h3 class="panel-title">Change Log</h3></a>
+			</div>
+			<div class="panel-body collapse" id="pa_collapse_changelog">
+				<table class="table">
+				<thead>
+					<tr>
+					<th>Version</th>
+					<th>Actions</th>
+				</thead>
+				<tbody>
+					<tr ng-repeat="version in changelogs">
+						<td>{{ version }}</td>
+						<td>
+							<button type="button" class="btn btn-sm btn-info" data-toggle="modal" data-target="#pa_viewLogInfo" ng-click="readLog(version, 'change');">View</button>
+						</td>
+					</tr>
+				</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+	</div>
+</div>
+

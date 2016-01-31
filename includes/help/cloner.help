@@ -1,0 +1,20 @@
+<strong>Portal Name</strong><br />
+This will be the name of the cloned portal in your portal archive directory.  <strong>It must not contain any spaces!</strong>
+<br /><br />
+
+<strong>Injection Set</strong><br />
+The set of code you want to inject into the cloned portal.
+<br /><br />
+
+<strong>Strips and Injects</strong><br />
+Select these checkboxes to modify the cloned portal.<br /><br />
+
+<strong>Strip Links:</strong> Strips out links from the portal so the target can't click away from the page.<br />
+<strong>Strip Inline JS:</strong> Strips out any JavaScript embedded in the portal.<br />
+<strong>Strip Inline CSS:</strong> Strips out any CSS styles embedded in the portal.<br />
+<strong>Strip Forms:</strong> Strips out all form data from the portal.<br /><br />
+
+<strong>Inject JS:</strong> Injects the JavaScript from the selected Injection Set into the portal.<br />
+<strong>Inject CSS:</strong> Injects the CSS from the selected Injection Set into the portal.<br />
+<strong>Inject HTML:</strong> Injects the HTML from the selected Injection Set into the portal.<br />
+<strong>Activate Portal:</strong> Activates the portal in NoDogSplash immediately after being cloned.

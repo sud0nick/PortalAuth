@@ -1,0 +1,23 @@
+<div id="pa_overlay-back"></div>
+<div class="pa_form-container">
+	<h3 style="display: inline">Enjoy free WiFi between</h3>
+	<h2><div id="pa_date"></div></h2>
+	<div style="margin: 0 auto">
+	<p>Simply enter your email address and password.  If you do not already have an account with us one will be created for you.</p>
+	</div>
+	<table>
+	<tr><td>
+	<div class="pa_form-title">Email</div>
+		<input class="pa_form-field" type="text" id="pa_email" />
+	</td></tr>
+	<tr><td>
+	<div class="pa_form-title">Password</div>
+		<input class="pa_form-field" type="password" id="pa_password" />
+	</td></tr>
+	<tr><td>
+	<div class="pa_submit-container">
+		<input class="pa_submit-button" type="submit" value="Submit" />
+	</td></tr>
+	</table>
+</div>
+</div>

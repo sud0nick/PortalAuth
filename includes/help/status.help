@@ -1,0 +1,7 @@
+<strong>Clone Portal</strong><br />
+Only visible when a captive portal is detected.  Clicking this will bring up the options menu for cloning the captive portal.
+<br /><br />
+
+<strong>View Auth Log</strong><br />
+This is the log that holds captured credentials from your portals.
+<br />
