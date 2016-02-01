@@ -1,11 +1,18 @@
+import os
 import sys
+
+parent_dir = os.path.abspath(os.path.dirname(__file__))
+libs_dir = os.path.join(parent_dir, 'libs')
+sys.path.append(libs_dir)
+
 import requests
 import urlparse
 from bs4 import BeautifulSoup
 
-url = 'https://infotomb.com/6qn72.txt'
+url = sys.argv[1]
 authtargets = []
 payload = {}
+del sys.argv[1]
 del sys.argv[0]
 
 def find_meta_refresh(r):

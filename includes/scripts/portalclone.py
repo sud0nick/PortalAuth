@@ -22,7 +22,7 @@ url = sys.argv[4]
 injectSet = sys.argv[5]
 splashFile = localNDS + "splash.html"
 requiredPaths = [localNDS, localNDS + "images/"]
-basePath = '/pineapple/components/infusions/portalauth/'
+basePath = '/pineapple/modules/PortalAuth/'
 
 # Create a dictionary for URLs found in CSS files
 css_urls = collections.defaultdict(list)

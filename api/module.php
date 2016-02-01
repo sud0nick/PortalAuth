@@ -4,6 +4,7 @@ namespace pineapple;
 
 define('__INCLUDES__', "/pineapple/modules/PortalAuth/includes/");
 define('__CONFIG__', __INCLUDES__ . "config");
+define('__AUTHLOG__', "/www/auth.log");
 
 // Main directory defines
 define('__LOGS__', __INCLUDES__ . "logs/");
@@ -144,6 +145,18 @@ class PortalAuth extends Module
 			case 'deleteInjectSet':
 				$this->deleteInjectionSet($this->request->set);
 				break;
+			case 'createInjectionSet':
+				$this->createInjectionSet($this->request->name);
+				break;
+			case 'autoAuth':
+				$this->autoAuthenticate();
+				break;
+			case 'scanMACs':
+				$this->scanNetwork();
+				break;
+			case 'getCapturedCreds':
+				$this->getCapturedCreds();
+				break;
 		}
 	}
 	
@@ -200,8 +213,12 @@ class PortalAuth extends Module
 		$this->respond(false);
 	}
 	
-	private function refreshAuthLog() {
-		$this->respond(true, null, file_get_contents('/www/nodogsplash/auth.log'));
+	private function getCapturedCreds() {
+		if (file_exists(__AUTHLOG__)) {
+			$this->respond(true, null, file_get_contents(__AUTHLOG__));
+			return;
+		}
+		$this->respond(false);
 	}
 
 	private function respond($success, $msg = null, $data = null) {
@@ -216,7 +233,7 @@ class PortalAuth extends Module
 		$data = array();
 		$res = exec(__SCRIPTS__ . "scan.sh", $data);
 		if ($res == "failed") {
-			$this->logError("mac_scan_error", implode("\r\n",$data));
+			$this->logError("MAC_Scan_Error", implode("\r\n",$data));
 			$this->respond(false);
 		} else {
 			$this->response(true, null, implode(";",$data));
@@ -262,7 +279,7 @@ class PortalAuth extends Module
 			$this->rrmdir($configs['p_archive'] . $name);
 		}
 		$data = array();
-		$res = exec("python " . __SCRIPTS__ . "portalclone.py " . $name . " " . $configs['p_archive'] . " '" . opts . "' " . $configs['testSite'] . " '" . $injectionSet . "' 2>&1", $data);
+		$res = exec("python " . __SCRIPTS__ . "portalclone.py " . $name . " " . $configs['p_archive'] . " '" . $opts . "' " . $configs['testSite'] . " '" . $injectionSet . "' 2>&1", $data);
 		if ($res == "Complete") {
 			if ($activate) {
 				if (!$this->activatePortal($name, $injectionSet)) {
@@ -291,12 +308,13 @@ class PortalAuth extends Module
 		$configs = $this->loadConfigData();
 		$args = implode(" ", explode(";", $configs['tags']));
 		$data = array();
-		$res = exec("python " . __SCRIPTS__ . "portalauth.py " . $args . " 2>&1", $data);
+		$res = exec("python " . __SCRIPTS__ . "portalauth.py " . $configs['testSite'] . " " . $args . " 2>&1", $data);
 		if ($res != "Complete") {
 			$this->logError("auto_auth_error", implode("\r\n",$data));
+			$this->respond(false);
 		}
-		$this->respond($res);
-		return $res;
+		$this->respond(true, $this->portalExists());
+		return true;
 	}
 	
 	private function activatePortal($name, $injectSet) {
@@ -448,13 +466,14 @@ class PortalAuth extends Module
 	private function createInjectionSet($setName) {
 		// Check if the directory exists
 		if (file_exists(__INJECTS__ . $setName)) {
-			$this->respond(false, "Injection set already exists");
-			return "Injection set already exists";
+			$this->logError("New_Injection_Set", "Failed to create new injection set because the name provided is already in use.");
+			$this->respond(false);
+			return false;
 		}
 	
 		// Create a directory for the set
 		if (!mkdir(__INJECTS__ . $setName)) {
-			$this->logError("createInjectionSet", "Failed to create directory structure");
+			$this->logError("New_Injection_Set", "Failed to create directory structure");
 			$this->respond(false);
 			return false;
 		}
@@ -463,7 +482,7 @@ class PortalAuth extends Module
 		foreach ($files as $file) {
 			$fh = fopen(__INJECTS__ . $setName . $file, "w+");
 			if (!$fh) {
-				$this->logError("createInjectionSetFiles", "Failed to create " . $setName . $file);
+				$this->logError("New_Injection_Set", "Failed to create " . $setName . $file);
 				fclose($fh);
 				$this->respond(false);
 				return false;

@@ -1,5 +1,6 @@
 registerController('PortalAuthController', ['$api', '$scope', '$sce', '$interval', function($api, $scope, $sce, $interval) {
 
+	// Settings elements
 	$scope.portalStatus				= "Loading...";
 	$scope.tServerConfig			= true;
 	$scope.testSite					= "";
@@ -7,17 +8,25 @@ registerController('PortalAuthController', ['$api', '$scope', '$sce', '$interval
 	$scope.htmlTags					= "";
 	$scope.portalArchive			= "";
 	$scope.macCollection			= false;
-	$scope.currentLogData			= "";
+	
+	// Status elements
 	$scope.online					= true;
 	$scope.portalExists				= false;
+	$scope.stop;
+	
+	// Log elements
+	$scope.currentLogData			= "";
 	$scope.errorlogs				= "";
 	$scope.changelogs				= "";
-	$scope.injectionSets			= {};
-	$scope.stop;
+	
+	// Auto auth elements
+	$scope.collectedMACs			= "No MACs have been collected yet.";
+	$scope.autoAuthStatus			= "Not Running";
 	
 	// Throbbers
 	$scope.showSettingsThrobber 	= false;
 	$scope.showClonerThrobber		= false;
+	$scope.showAutoAuthThrobber		= false;
 	
 	// Divs
 	$scope.showPASSDiv				= true;
@@ -44,13 +53,42 @@ registerController('PortalAuthController', ['$api', '$scope', '$sce', '$interval
 	$scope.editorCode				= "";
     $scope.activityLogData          = "";
     $scope.availableTargets         = "";
+	$scope.capturedCreds			= "Nothing here yet.";
 	
 	// Injection Editor Elements
+	$scope.injectionSets			= {};
 	$scope.pa_injectJSEditor		= "";
 	$scope.pa_injectCSSEditor		= "";
 	$scope.pa_injectHTMLEditor		= "";
 	$scope.pa_injectAuthPHPEditor	= "";
+	$scope.newInjectSetName			= "";
 	
+	$scope.autoAuth = (function(){
+		$scope.showAutoAuthThrobber = true;
+		$scope.autoAuthStatus = "Attempting authentication...";
+		$api.request({
+			module: 'PortalAuth',
+			action: 'autoAuth'
+		},function(response) {
+			if (response.success === false) {
+				// Using this to check if MAC collection is allowed
+				// so I don't need to make an extra request
+				if (response.message === true) {
+					$scope.autoAuthStatus = "Scanning network to collect MACs...";
+					$api.request({
+						module: 'PortalAuth',
+						action: 'scanMACs'
+					},function(response){
+						if (response.success === true) {
+							$scope.collectedMACs = response.data;
+						}
+					});
+				}
+			}
+			$scope.autoAuthStatus = "Not Running";
+			$scope.showAutoAuthThrobber = false;
+		});
+	});
 	$scope.getConfigs = (function(){
 		$api.request({
 			module: 'PortalAuth',
@@ -334,6 +372,26 @@ registerController('PortalAuthController', ['$api', '$scope', '$sce', '$interval
 			}
 		});
 	});
+	$scope.newInjectionSet = (function(){
+		if ($scope.newInjectSetName == "") {
+			console.log("error");
+			return;
+		}
+		
+		$api.request({
+			module: 'PortalAuth',
+			action: 'createInjectionSet',
+			name: $scope.newInjectSetName
+		},function(response){
+			if (response.success === true) {
+				alert("Injection set created!");
+				$scope.newInjectSetName = "";
+				$scope.getInjectionSets();
+			} else {
+				alert("An error occurred.  Check the logs for details.");
+			}
+		});
+	});
 	$scope.getInjectionSets = (function(){
 		$scope.injectionSets = {};
 		$api.request({
@@ -500,6 +558,18 @@ registerController('PortalAuthController', ['$api', '$scope', '$sce', '$interval
 			});
 		}
 	});
+	$scope.getCapturedCreds = (function(){
+		$api.request({
+			module: 'PortalAuth',
+			action: 'getCapturedCreds'
+		},function(response){
+			if (response.success === false || response.data == "") {
+				$scope.capturedCreds = "Nothing here yet.";
+			} else if (response.success === true) {
+				$scope.capturedCreds = response.data;
+			}
+		});
+	});
 	
 	// Not sure if this is ever reached
 	$scope.$on('$destroy', function(){
@@ -518,6 +588,7 @@ registerController('PortalAuthController', ['$api', '$scope', '$sce', '$interval
 		$scope.readLog("pass.log", "pass");
 		$scope.readLog("targets.log", "pass");
 		$scope.getLogs("error");
+		$scope.getCapturedCreds();
 	}, 1000);
 	$scope.getInjectionSets();
 	$scope.checkPASSRunning();
