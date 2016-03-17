@@ -17,4 +17,3 @@ Select these checkboxes to modify the cloned portal.<br /><br />
 <strong>Inject JS:</strong> Injects the JavaScript from the selected Injection Set into the portal.<br />
 <strong>Inject CSS:</strong> Injects the CSS from the selected Injection Set into the portal.<br />
 <strong>Inject HTML:</strong> Injects the HTML from the selected Injection Set into the portal.<br />
-<strong>Activate Portal:</strong> Activates the portal in NoDogSplash immediately after being cloned.

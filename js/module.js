@@ -44,7 +44,6 @@ registerController('PortalAuthController', ['$api', '$scope', '$sce', '$interval
 	$scope.cloner_injectJS			= true;
 	$scope.cloner_injectCSS			= true;
 	$scope.cloner_injectHTML		= true;
-	$scope.cloner_activate			= false;
 	
 	// PASS elements
 	$scope.passStatus				= "Disabled";
@@ -56,12 +55,13 @@ registerController('PortalAuthController', ['$api', '$scope', '$sce', '$interval
 	$scope.capturedCreds			= "Nothing here yet.";
 	
 	// Injection Editor Elements
-	$scope.injectionSets			= {};
-	$scope.pa_injectJSEditor		= "";
-	$scope.pa_injectCSSEditor		= "";
-	$scope.pa_injectHTMLEditor		= "";
-	$scope.pa_injectAuthPHPEditor	= "";
-	$scope.newInjectSetName			= "";
+	$scope.injectionSets				= {};
+	$scope.pa_injectJSEditor			= "";
+	$scope.pa_injectCSSEditor			= "";
+	$scope.pa_injectHTMLEditor			= "";
+	$scope.pa_injectPHPEditor			= "";
+	$scope.pa_injectMyPortalPHPEditor	= "";
+	$scope.newInjectSetName				= "";
 	
 	$scope.autoAuth = (function(){
 		$scope.showAutoAuthThrobber = true;
@@ -119,7 +119,7 @@ registerController('PortalAuthController', ['$api', '$scope', '$sce', '$interval
 			configs['testSite'] = "http://www.puffycode.com/cptest.html";
 			configs['dataExpected'] = "No Captive Portal";
 			configs['tags'] = "button;input;select;a;option";
-			configs['p_archive'] = "/sd/portals/";
+			configs['p_archive'] = "/root/portals/";
 			configs['mac_collection'] = "checked";
 		}
 		$api.request({
@@ -224,7 +224,8 @@ registerController('PortalAuthController', ['$api', '$scope', '$sce', '$interval
 			$scope.pa_injectJSEditor = "";
 			$scope.pa_injectCSSEditor = "";
 			$scope.pa_injectHTMLEditor = "";
-			$scope.pa_injectAuthPHPEditor = "";
+			$scope.pa_injectPHPEditor = "";
+			$scope.pa_injectMyPortalPHPEditor = "";
 			return;
 		}
 		$api.request({
@@ -237,13 +238,14 @@ registerController('PortalAuthController', ['$api', '$scope', '$sce', '$interval
 				$scope.pa_injectJSEditor = $code['injectjs'];
 				$scope.pa_injectCSSEditor = $code['injectcss'];
 				$scope.pa_injectHTMLEditor = $code['injecthtml'];
-				$scope.pa_injectAuthPHPEditor = $code['authphp'];
+				$scope.pa_injectPHPEditor = $code['injectphp'];
+				$scope.pa_injectMyPortalPHPEditor = $code['MyPortal'];
 			}
 		});
 	});
 	$scope.restoreEditorCode = (function(file){
 		set = "";
-		if (file.includes("inject") || file.includes("auth")) {
+		if (file.includes("inject") || file.includes("MyPortal")) {
 			set = $scope.editor_injectionSet;
 		}
 		$api.request({
@@ -261,10 +263,12 @@ registerController('PortalAuthController', ['$api', '$scope', '$sce', '$interval
 					$scope.pa_injectJSEditor = response.data;
 				} else if (file.includes("CSS")) {
 					$scope.pa_injectCSSEditor = response.data;
-				} else if (file.includes("auth")) {
-					$scope.pa_injectAuthPHPEditor = response.data;
+				} else if (file.includes("MyPortal")) {
+					$scope.pa_injectMyPortalPHPEditor = response.data;
 				} else if (file.includes("HTML")) {
 					$scope.pa_injectHTMLEditor = response.data;
+				} else if (file.includes("PHP")) {
+					$scope.pa_injectPHPEditor = response.data;
 				}
 			} else {
 				alert("Failed to restore file!");
@@ -274,16 +278,18 @@ registerController('PortalAuthController', ['$api', '$scope', '$sce', '$interval
 	$scope.saveEditorCode = (function(file){
 		set = "";
 		data = $scope.editorCode;
-		if (file.includes("inject") || file.includes("auth")) {
+		if (file.includes("inject") || file.includes("MyPortal")) {
 			set = $scope.editor_injectionSet;
 			if (file.includes("JS")) {
 				data = $scope.pa_injectJSEditor;
 			} else if (file.includes("CSS")) {
 				data =$scope.pa_injectCSSEditor;
-			} else if (file.includes("auth")) {
-				data = $scope.pa_injectAuthPHPEditor;
+			} else if (file.includes("MyPortal")) {
+				data = $scope.pa_injectMyPortalPHPEditor;
 			} else if (file.includes("HTML")) {
 				data = $scope.pa_injectHTMLEditor;
+			} else if (file.includes("PHP")) {
+				data = $scope.pa_injectPHPEditor;
 			}
 		}
 		$api.request({
@@ -303,16 +309,18 @@ registerController('PortalAuthController', ['$api', '$scope', '$sce', '$interval
 	$scope.backupEditorCode = (function(file){
 		set = "";
 		data = $scope.editorCode;
-		if (file.includes("inject") || file.includes("auth")) {
+		if (file.includes("inject") || file.includes("MyPortal")) {
 			set = $scope.editor_injectionSet;
 			if (file.includes("JS")) {
 				data = $scope.pa_injectJSEditor;
 			} else if (file.includes("CSS")) {
 				data =$scope.pa_injectCSSEditor;
-			} else if (file.includes("auth")) {
-				data = $scope.pa_injectAuthPHPEditor;
+			} else if (file.includes("MyPortal")) {
+				data = $scope.pa_injectMyPortalPHPEditor;
 			} else if (file.includes("HTML")) {
 				data = $scope.pa_injectHTMLEditor;
+			} else if (file.includes("PHP")) {
+				data = $scope.pa_injectPHPEditor;
 			}
 		}
 		$api.request({
@@ -384,7 +392,6 @@ registerController('PortalAuthController', ['$api', '$scope', '$sce', '$interval
 			name: $scope.newInjectSetName
 		},function(response){
 			if (response.success === true) {
-				alert("Injection set created!");
 				$scope.newInjectSetName = "";
 				$scope.getInjectionSets();
 			} else {
@@ -478,8 +485,7 @@ registerController('PortalAuthController', ['$api', '$scope', '$sce', '$interval
 				action: 'clonePortal',
 				name: $scope.cloner_portalName,
 				options: clonerOpts,
-				inject: $scope.cloner_injectionSet,
-				activate: $scope.cloner_activate
+				inject: $scope.cloner_injectionSet
 			},function(response){
 				if (response.success === true) {
 					if (response.message != null) {
@@ -506,7 +512,6 @@ registerController('PortalAuthController', ['$api', '$scope', '$sce', '$interval
 		$scope.cloner_injectJS			= true;
 		$scope.cloner_injectCSS			= true;
 		$scope.cloner_injectHTML		= true;
-		$scope.cloner_activate			= false;
 	});
 	$scope.swapDiv = (function(div){
 		if (div == "pass") {
@@ -568,6 +573,17 @@ registerController('PortalAuthController', ['$api', '$scope', '$sce', '$interval
 			} else if (response.success === true) {
 				$scope.capturedCreds = response.data;
 			}
+		});
+	});
+	$scope.clearCapturedCreds = (function(){
+		$api.request({
+			module: 'PortalAuth',
+			action: 'clearCapturedCreds'
+		},function(response){
+			if (response.success === false) {
+				alert("Failed to clear log.");
+			}
+			$scope.getCapturedCreds();
 		});
 	});
 	

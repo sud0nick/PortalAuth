@@ -14,6 +14,7 @@ define('__SCRIPTS__', __INCLUDES__ . "scripts/");
     
 // Injection set defines
 define('__INJECTS__', __SCRIPTS__ . "injects/");
+define('__SKELETON__', __SCRIPTS__. "skeleton/");
     
 // NetClient defines
 define('__DOWNLOAD__', "/www/download/");
@@ -73,7 +74,7 @@ class PortalAuth extends Module
 				$this->clonedPortalExists($this->request->name);
 				break;
 			case 'clonePortal':
-				$this->clonePortal($this->request->name, $this->request->options, $this->request->inject, $this->request->activate);
+				$this->clonePortal($this->request->name, $this->request->options, $this->request->inject);
 				break;
 			case 'checkPASSRunning':
 				$this->getPID();
@@ -94,7 +95,7 @@ class PortalAuth extends Module
 						break;
 					default:
 						$base = __INJECTS__ . $this->request->set . "/";
-						$ext = ($this->request->file == "auth") ? ".php" : ".txt";
+						$ext = ($this->request->file == "MyPortal") ? ".php" : ".txt";
 						$path = $base . $this->request->file . $ext;
 						$pathBak = $base . "backups/" . $this->request->file . $ext;
 						$this->restoreFile($path, $pathBak);
@@ -108,7 +109,7 @@ class PortalAuth extends Module
 						break;
 					default:
 						$base = __INJECTS__ . $this->request->set . "/";
-						$ext = ($this->request->file == "auth") ? ".php" : ".txt";
+						$ext = ($this->request->file == "MyPortal") ? ".php" : ".txt";
 						$path = $base . $this->request->file . $ext;
 						$this->saveClonerFile($path, $this->request->data);
 						break;
@@ -122,7 +123,7 @@ class PortalAuth extends Module
 						break;
 					default:
 						$base = __INJECTS__ . $this->request->set . "/";
-						$ext = ($this->request->file == "auth") ? ".php" : ".txt";
+						$ext = ($this->request->file == "MyPortal") ? ".php" : ".txt";
 						$path = $base . $this->request->file . $ext;
 						$pathBak = $base . "backups/" . $this->request->file . $ext;
 						$this->saveClonerFile($path, $this->request->data);
@@ -156,6 +157,9 @@ class PortalAuth extends Module
 				break;
 			case 'getCapturedCreds':
 				$this->getCapturedCreds();
+				break;
+			case 'clearCapturedCreds':
+				$this->clearCapturedCreds();
 				break;
 		}
 	}
@@ -204,21 +208,23 @@ class PortalAuth extends Module
 	private function checkIsOnline() {
 		$this->respond(checkdnsrr("wifipineapple.com", "A"));
 	}
-	
-	private function activateAuthPHP($injectSet) {
-		if (copy(__INJECTS__ . $injectSet . "/auth.php", "/www/nodogsplash/auth.php")) {
-			$this->respond(true);
-			return;
-		}
-		$this->respond(false);
-	}
-	
 	private function getCapturedCreds() {
 		if (file_exists(__AUTHLOG__)) {
 			$this->respond(true, null, file_get_contents(__AUTHLOG__));
 			return;
 		}
 		$this->respond(false);
+	}
+	
+	private function clearCapturedCreds() {
+		$res = true;
+		if (file_exists(__AUTHLOG__)) {
+			$fh = fopen(__AUTHLOG__, "w");
+			$res = ($fh) ? true : false;
+			fclose($fh);
+		}
+		$this->respond($res);
+		return $res;
 	}
 
 	private function respond($success, $msg = null, $data = null) {
@@ -272,21 +278,43 @@ class PortalAuth extends Module
 		}
 	}
 	
-	function clonePortal($name, $opts, $injectionSet, $activate = false) {
+	function clonePortal($name, $opts, $injectionSet) {
 		$configs = $this->loadConfigData();
 		if ($this->clonedPortalExists($name)) {
 			// Delete the current portal
 			$this->rrmdir($configs['p_archive'] . $name);
 		}
-		$data = array();
-		$res = exec("python " . __SCRIPTS__ . "portalclone.py " . $name . " " . $configs['p_archive'] . " '" . $opts . "' " . $configs['testSite'] . " '" . $injectionSet . "' 2>&1", $data);
-		if ($res == "Complete") {
-			if ($activate) {
-				if (!$this->activatePortal($name, $injectionSet)) {
-					$this->respond(true, "Portal cloned successfully but failed to activate.");
-					return;
-				}
+		
+		// Build a params dictionary
+		$params = array();
+		$params['--portalName'] = $name;
+		$params['--portalArchive'] = $configs['p_archive'];
+		$params['--url'] = $configs['testSite'];
+		$params['--injectSet'] = $injectionSet;
+		
+		// Options come in the form of a semi-colon delimited string
+		// i.e. stripjs;injectcss;injectjs
+		// This block simply sets them as a new key in params with a null
+		// value since they are command line switches
+		foreach (explode(";", $opts) as $opt) {
+			$key = "--" . $opt;
+			$params[$key] = null;
+		}
+		
+		// Build the argument string
+		$argString = "";
+		foreach ($params as $k => $v) {
+			if ($v == null) {
+				$argString .= " $k";
+			} else {
+				$argString .= " $k $v";
 			}
+		}
+		
+		
+		$data = array();
+		$res = exec("python " . __SCRIPTS__ . "portalclone.py" . $argString ." 2>&1", $data);
+		if ($res == "Complete") {
 			$this->respond(true);
 			return;
 		}
@@ -315,17 +343,6 @@ class PortalAuth extends Module
 		}
 		$this->respond(true, $this->portalExists());
 		return true;
-	}
-	
-	private function activatePortal($name, $injectSet) {
-		$configs = $this->loadConfigData();
-		$data = array();
-		$res = exec(__SCRIPTS__ . "activateportal.sh " . $configs['p_archive'] . " " . $name . " " . $injectSet, $data);
-		if ($res == "") {
-			return true;
-		}
-		$this->logError("Activate_Portal_Error", implode("\r\n",$data));
-		return false;
 	}
 	
 	//======================//
@@ -478,18 +495,13 @@ class PortalAuth extends Module
 			return false;
 		}
 		// Create each of the Inject files
-		$files = ["/injectJS.txt","/injectCSS.txt","/injectHTML.txt","/auth.php"];
-		foreach ($files as $file) {
-			$fh = fopen(__INJECTS__ . $setName . $file, "w+");
-			if (!$fh) {
-				$this->logError("New_Injection_Set", "Failed to create " . $setName . $file);
-				fclose($fh);
-				$this->respond(false);
-				return false;
+		foreach (scandir(__SKELETON__) as $file) {
+			if ($file == "." || $file == "..") {continue;}
+			if (!copy(__SKELETON__ . $file, __INJECTS__ . $setName . "/" . $file)) {
+				$this->logError("Injection_Set_Creation_Error", "Failed to create the following file: " . $file);
 			}
-			fwrite($fh, "// Replace me with your code //");
-			fclose($fh);
 		}
+		
 		$this->respond(true);
 		return true;
 	}
@@ -504,30 +516,6 @@ class PortalAuth extends Module
 		}
 		$file = __INCLUDES__ . "downloads/" . $setName . ".tar.gz";
 		$this->respond(true, null, $this->downloadFile($file));
-		return true;
-	}
-	
-	private function fetchAvailableInjectionSets() {
-		$data = array();
-		$res = exec("python " . __SCRIPTS__ . "retrieveInjectionSetLinks.py", $data);
-		$html = "<table class='pa_config_table'>";
-		foreach ($data as $row) {
-			$cells = explode(";", $row);
-			$html .= "<tr><td><a href='#' class='pa_externalInjectionSet' url='" . $cells[1] . "'>Download</a></td><td><h2 class='pa_h2' style='display:inline'>" . $cells[0] . "</h2></td></tr><tr><td colspan='2'><hr /></td></tr>";
-		}
-		$html .= "</table>";
-		$this->respond(true, null, $html);
-		return $html;
-	}
-	
-	private function downloadExternalInjectionSet($url) {
-		$data = array();
-		$res = exec(__SCRIPTS__ . "downloadExternalInjectionSet.sh " . $url, $data);
-		if ($res != "Complete") {
-			$this->respond(false);
-			return false;
-		}
-		$this->respond(true);
 		return true;
 	}
 	
@@ -560,13 +548,17 @@ class PortalAuth extends Module
 		if (!$injectFiles['injecthtml'] = $this->getInjectionFile("injectHTML.txt", $set)) {
 			$failed = true;
 		}
-		if (!$injectFiles['authphp'] = $this->getInjectionFile("auth.php", $set)) {
+		if (!$injectFiles['MyPortal'] = $this->getInjectionFile("MyPortal.php", $set)) {
+			$failed = true;
+		}
+		if (!$injectFiles['injectphp'] = $this->getInjectionFile("injectPHP.txt", $set)) {
 			$failed = true;
 		}
 		if ($failed) {
-			$this->respond(false, null, $injectFiles);
+			$this->logError("Retrieve_Injection_Set", "Failed to retrieve all files from the selected injection set.");
 		}
 		$this->respond(true, null, $injectFiles);
+		return true;
 	}
 	
 	private function getInjectionFile($fileName, $setName) {

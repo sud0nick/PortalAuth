@@ -5,87 +5,52 @@
 }
 </style>
 <div class="row" id="portalAuthModule" ng-controller="PortalAuthController">
-	<div class="col-md-5">
-		<div class="container-fluid">
-			<div class="row">
-				<div class="panel panel-default">
-					<div class="panel-heading">
-						<table style="width: 100%">
-							<tr><td align="left">
-								<h3 class="panel-title">Portal Auth Status</h3>
-							</td><td align="right">
-								<span class="panel-title">
-									
-								</span>
-							</td></tr>
-						</table>
-					</div>
-					<div class="panel-body">
-						<div class="pull-right">
-							<button type="button" class="btn" data-toggle="modal" data-target="#pa_viewLogInfo" ng-click="readLog('status.help','help');">?</button>
-						</div>
-						<div>
-							<span ng-show="tServerConfig && online" ng-hide="!tServerConfig && !online">
-								<strong> {{ portalStatus }} </strong><br />
-								<strong> PASS Status:</strong> {{ passStatus }}
-							</span>
-							<span ng-show="!online" ng-hide="online">
-								<span style="color:red"><strong>WiFi Pineapple must be online to use PortalAuth</strong></span>
-							</span>
-							<span ng-show="!tServerConfig" ng-hide="tServerConfig">
-								<strong>Both <span style='color:red'>Test Site</span> and <span style='color:red'>Data Expected</span> must be configured before using Portal Auth</strong><br />
-								*Click the help icon in the Settings window for more information.
-							</span>
-						</div><br />
-						<div ng-show="portalExists && tServerConfig" ng-hide="!portalExists || !tServerConfig">
-							<button type="button" class="btn btn-success" data-toggle="modal" data-target="#clonerOptions" ng-click="prepareOptsModal();">Clone Portal</button>&nbsp;
-							<!--<button type="button" class="btn btn-success" data-toggle="modal" data-target="#pa_MACView">Auto Authenticate</button>-->
-							<br /><br />
-						</div><br />
-					</div>
-				</div>
+
+
+	<div class="col-md-12">
+		<div class="panel panel-default">
+			<div class="panel-heading">
+				<h3 class="panel-title">Portal Auth Status</h3>
 			</div>
-			<div class="row">
-				<div class="panel panel-default">
-					<div class="panel-heading">
-						<h3 class="panel-title">Error Logs</h3>
+			<div class="panel-body">
+				<div class="container-fluid">
+					<div class="pull-right">
+						<button type="button" class="btn" data-toggle="modal" data-target="#pa_viewLogInfo" ng-click="readLog('status.help','help');">?</button>
 					</div>
-					<div class="panel-body">
-						<table class="table">
-							<thead>
-								<tr>
-									<th>Log Name</th>
-									<th>Actions</th>
-							</thead>
-							<tbody>
-								<tr ng-repeat="log in errorlogs">
-									<td>{{ log }}</td>
-									<td>
-										<button type="button" class="btn btn-sm btn-info" data-toggle="modal" data-target="#pa_viewLogInfo" ng-click="readLog(log, 'error');">View</button>
-										<button type="button" class="btn btn-sm btn-danger" ng-click="deleteLog(log);">Delete</button>
-									</td>
-								</tr>
-							</tbody>
-						</table>
+					<div>
+						<span ng-show="tServerConfig && online" ng-hide="!tServerConfig && !online">
+							<strong> {{ portalStatus }} </strong><br />
+							<strong> PASS Status:</strong> {{ passStatus }}
+						</span>
+						<span ng-show="!online" ng-hide="online">
+							<span style="color:red"><strong>WiFi Pineapple must be online to use PortalAuth</strong></span>
+						</span>
+						<span ng-show="!tServerConfig" ng-hide="tServerConfig">
+							<strong>Both <span style='color:red'>Test Site</span> and <span style='color:red'>Data Expected</span> must be configured before using Portal Auth</strong><br />
+							*Click the help icon in the Settings panel for more information.
+						</span>
+					</div><br />
+					<div ng-show="portalExists && tServerConfig" ng-hide="!portalExists || !tServerConfig">
+						<button type="button" class="btn btn-success" data-toggle="modal" data-target="#clonerOptions" ng-click="prepareOptsModal();">Clone Portal</button>&nbsp;
+						<!--<button type="button" class="btn btn-success" data-toggle="modal" data-target="#pa_MACView">Auto Authenticate</button>-->
+						<br /><br />
 					</div>
 				</div>
 			</div>
 		</div>
 	</div>
-	<div class="col-md-5">
+	
+	
+	<div class="col-md-12">
 		<div class="panel panel-default">
-			<div class="panel-heading">
+			<div class="panel-heading pointer" data-toggle="collapse" data-target="#pa_settings">
 				<table style="width: 100%">
 					<tr><td align="left">
 						<h3 class="panel-title">Settings
 						<img ng-show="showSettingsThrobber" ng-hide="!showSettingsThrobber" src='/img/throbber.gif'/></h3>
-					</td><td align="right">
-						<button type="button" class="btn btn-success" ng-click="updateSettings('default');">Use Default</button>
-						<button type="button" class="btn btn-success" ng-click="updateSettings();">Save</button>
-					</td></tr>
 				</table>
 			</div>
-			<div class="panel-body">
+			<div id="pa_settings" class="panel-body panel-collapse collapse">
 				<div class="container-fluid">
 					<div class="pull-right">
 						<button type="button" class="btn" data-toggle="modal" data-target="#pa_viewLogInfo" ng-click="readLog('settings.help','help');">?</button>
@@ -121,10 +86,17 @@
 						</div>
 					</div>
 					-->
+					<div class="form-group">
+						<div class="col-md-12 PA_topbuffer">
+							<button type="button" class="btn btn-success" ng-click="updateSettings('default');">Use Default</button>
+							<button type="button" class="btn btn-success" ng-click="updateSettings();">Save</button>
+						</div>
+					</div>
 				</div>
 			</div>
 		</div>
 	</div>
+	
 	
 	<div id="clonerOptions" class="modal fade" role="dialog">
 		<div class="modal-dialog">
@@ -145,7 +117,7 @@
 							<img src='/img/throbber.gif'/>
 						</div>
 						
-						<form role="form">
+						<form role="form" ng-show="!showClonerThrobber" ng-hide="showClonerThrobber">
 							<div class="form-group">
 								<label class="col-md-5 control-label">Portal Name</label>
 								<div class="col-md-12">
@@ -199,11 +171,6 @@
 									<div class="col-md-6">
 										<label class="checkbox-inline">
 											<input type="checkbox" ng-model="cloner_stripForms"><strong>Strip Forms</strong>
-										</label>
-									</div>
-									<div class="col-md-6">
-										<label class="checkbox-inline">
-											<input type="checkbox" ng-model="cloner_activate"><strong>Activate Portal</strong>
 										</label>
 									</div>
 								</div>
@@ -281,7 +248,7 @@
 				<div class="modal-body">
 					<input type="text" class="form-control" ng-model="newInjectSetName" placeholder="Injection Set Name"/><br />
 					<button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
-					<button type="button" class="btn btn-success" ng-click="newInjectionSet();">Create</button>
+					<button type="button" class="btn btn-success" data-dismiss="modal" ng-click="newInjectionSet();">Create</button>
 				</div>
 			</div>
 		</div>
@@ -311,12 +278,12 @@
 	-->
 	
 	<div ng-show="tServerConfig" ng-hide="!tServerConfig">
-	<div class="col-md-10">
+	<div class="col-md-12">
 		<div class="panel panel-default">
-			<div class="panel-heading">
-				<a href="javascript:;" data-toggle="collapse" data-target="#PA_payload_collapse"><h3 class="panel-title">Payload</h3></a>
+			<div class="panel-heading pointer" data-toggle="collapse" data-target="#PA_payload_collapse">
+				<h3 class="panel-title">Payload</h3>
 			</div>
-			<div class="panel-body collapse" id="PA_payload_collapse">
+			<div id="PA_payload_collapse" class="panel-body panel-collapse collapse">
 				<div style="text-align:center">
 					<div class="btn-group" data-toggle="buttons">
 						<button type="button" class="btn btn-primary" ng-class="{'active' : showPASSDiv}" ng-click="swapDiv('pass');">PASS</button>
@@ -394,12 +361,12 @@
 		</div>
 	</div>
 	
-	<div class="col-md-10">
+	<div class="col-md-12">
 		<div class="panel panel-default">
-			<div class="panel-heading">
-				<a href="javascript:;" data-toggle="collapse" data-target="#pa_injections_collapse"><h3 class="panel-title">Injection Sets</h3></a>
+			<div class="panel-heading pointer" data-toggle="collapse" data-target="#pa_injections_collapse">
+				<h3 class="panel-title">Injection Sets</h3>
 			</div>
-			<div class="panel-body collapse" id="pa_injections_collapse">
+			<div id="pa_injections_collapse" class="panel-body panel-collapse collapse">
 				<div style="text-align:center">
 					<div class="btn-group" data-toggle="buttons">
 						<button type="button" class="btn btn-primary" ng-class="{'active' : showInjectManagerDiv}" ng-click="swapDiv('injectManager');">Manage Injects</button>
@@ -440,6 +407,25 @@
 						<h3>Current Injection Set</h3>
 						<select ng-model="editor_injectionSet" ng-options="set for set in injectionSets" ng-change="getInjectCode(editor_injectionSet)"></select>
 					</div>
+					
+					<div class="col-md-12">
+						<table style="width: 100%"><tr><td>
+							<h3>InjectPHP</h3>
+						</td><td align="right">
+							<button type="button" class="btn" data-toggle="modal" data-target="#pa_viewLogInfo" ng-click="readLog('injectphp.help','help');">?</button>
+						</td></tr>
+						</table>
+						<textarea class="pa_codeEditorContainer" ng-model="pa_injectPHPEditor" style="height: 300px; width: 100%" wrap="off" spellcheck="false"></textarea>
+						<table style="width: 100%">
+							<tr><td>
+								<button type="button" class="btn btn-danger" ng-click="backupEditorCode('injectPHP');">Backup</button>
+								<button type="button" class="btn btn-info" ng-click="restoreEditorCode('injectPHP');">Restore</button>
+							</td><td align="right">
+								<button type="button" class="btn btn-success" ng-click="saveEditorCode('injectPHP');">Save PHP</button>
+							</td></tr>
+						</table>
+					</div><br />
+					
 					<div class="col-md-12">
 						<table style="width: 100%"><tr><td>
 							<h3>InjectJS</h3>
@@ -496,18 +482,18 @@
 					
 					<div class="col-md-12">
 						<table style="width: 100%"><tr><td>
-							<h3>Auth PHP</h3>
+							<h3>MyPortal.php</h3>
 						</td><td align="right">
-							<button type="button" class="btn" data-toggle="modal" data-target="#pa_viewLogInfo" ng-click="readLog('authphp.help','help');">?</button>
+							<button type="button" class="btn" data-toggle="modal" data-target="#pa_viewLogInfo" ng-click="readLog('myportal.help','help');">?</button>
 						</td></tr>
 						</table>
-						<textarea class="pa_codeEditorContainer" ng-model="pa_injectAuthPHPEditor" style="height: 300px; width: 100%" wrap="off" spellcheck="false"></textarea>
+						<textarea class="pa_codeEditorContainer" ng-model="pa_injectMyPortalPHPEditor" style="height: 300px; width: 100%" wrap="off" spellcheck="false"></textarea>
 						<table style="width: 100%">
 							<tr><td>
-								<button type="button" class="btn btn-danger" ng-click="backupEditorCode('auth');">Backup</button>
-								<button type="button" class="btn btn-info" ng-click="restoreEditorCode('auth');">Restore</button>
+								<button type="button" class="btn btn-danger" ng-click="backupEditorCode('MyPortal');">Backup</button>
+								<button type="button" class="btn btn-info" ng-click="restoreEditorCode('MyPortal');">Restore</button>
 							</td><td align="right">
-								<button type="button" class="btn btn-success" ng-click="saveEditorCode('auth');">Save Auth PHP</button>
+								<button type="button" class="btn btn-success" ng-click="saveEditorCode('MyPortal');">Save MyPortal.php</button>
 							</td></tr>
 						</table>
 					</div>
@@ -516,23 +502,52 @@
 		</div>
 	</div>
 	
-	<div class="col-md-10">
+	<div class="col-md-12">
 		<div class="panel panel-default">
-			<div class="panel-heading">
-				<a href="javascript:;" data-toggle="collapse" data-target="#pa_collapse_authlog"><h3 class="panel-title">Captured Credentials</h3></a>
+			<div class="panel-heading pointer" data-toggle="collapse" data-target="#pa_collapse_authlog">
+				<h3 class="panel-title">Captured Credentials</h3>
 			</div>
-			<div class="panel-body collapse" id="pa_collapse_authlog">
+			<div id="pa_collapse_authlog" class="panel-body panel-collapse collapse">
 				<pre>{{capturedCreds}}</pre>
+				<div style="text-align: right">
+					<button type="button" class="btn btn-danger" ng-click="clearCapturedCreds();">Clear Log</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<div class="col-md-12">
+		<div class="panel panel-default">
+			<div class="panel-heading pointer" data-toggle="collapse" data-target="#errorlog">
+				<h3 class="panel-title">Error Logs</h3>
+			</div>
+			<div id="errorlog" class="panel-body panel-collapse collapse">
+				<table class="table">
+					<thead>
+						<tr>
+							<th>Log Name</th>
+							<th>Actions</th>
+					</thead>
+					<tbody>
+						<tr ng-repeat="log in errorlogs">
+							<td>{{ log }}</td>
+							<td>
+								<button type="button" class="btn btn-sm btn-info" data-toggle="modal" data-target="#pa_viewLogInfo" ng-click="readLog(log, 'error');">View</button>
+								<button type="button" class="btn btn-sm btn-danger" ng-click="deleteLog(log);">Delete</button>
+							</td>
+						</tr>
+					</tbody>
+				</table>
 			</div>
 		</div>
 	</div>
 		
-	<div class="col-md-10">
+	<div class="col-md-12">
 		<div class="panel panel-default">
-			<div class="panel-heading">
-				<a href="javascript:;" data-toggle="collapse" data-target="#pa_collapse_changelog"><h3 class="panel-title">Change Log</h3></a>
+			<div class="panel-heading pointer" data-toggle="collapse" data-target="#pa_collapse_changelog">
+				<h3 class="panel-title">Change Log</h3>
 			</div>
-			<div class="panel-body collapse" id="pa_collapse_changelog">
+			<div id="pa_collapse_changelog" class="panel-body panel-collapse collapse">
 				<table class="table">
 				<thead>
 					<tr>

@@ -1,5 +1,5 @@
-testSite=http://www.puffycode.com/cptest.html
-dataExpected=No Captive Portal
+testSite=
+dataExpected=
 tags=button;input;select;a;option
-p_archive=/sd/portals/
+p_archive=/root/portals/
 mac_collection=checked
