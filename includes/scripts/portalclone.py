@@ -24,27 +24,27 @@ cloner.fetchPage(args.url)
 cloner.cloneResources()
 
 
-if args.stripjs is not None:
+if args.stripjs is not False:
 	cloner.stripJS()
 
-if args.stripcss is not None:
+if args.stripcss is not False:
 	cloner.stripCSS()
 
-if args.stripforms is not None:
+if args.stripforms is not False:
 	cloner.stripForms()
 	
-if args.striplinks is not None:
+if args.striplinks is not False:
 	cloner.stripLinks()
 
 
 	
-if args.injectjs is not None:
+if args.injectjs is not False:
 	cloner.injectJS()
 
-if args.injectcss is not None:
+if args.injectcss is not False:
 	cloner.injectCSS()
 	
-if args.injecthtml is not None:
+if args.injecthtml is not False:
 	cloner.injectHTML()
 	
 	

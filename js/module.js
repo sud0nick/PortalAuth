@@ -179,11 +179,11 @@ registerController('PortalAuthController', ['$api', '$scope', '$sce', '$interval
 			}
 		});
 	});
-	$scope.downloadLog = (function(log){
+	$scope.download = (function(file){
 		$api.request({
 			module: 'PortalAuth',
-			action: 'downloadLog',
-			file: log
+			action: 'download',
+			file: file
 		},function(response){
 			if (response.success === true) {
 				window.location = '/api/?download=' + response.data;
@@ -439,17 +439,15 @@ registerController('PortalAuthController', ['$api', '$scope', '$sce', '$interval
 		});
 	});
 	$scope.clonePortal = (function(){
-		// Check if an injection set is selected and if so make sure some boxes are checked
-		if ($scope.cloner_injectionSet != $scope.injectionSets[0]) {
-			if (!$scope.cloner_injectJS || !$scope.cloner_injectCSS || !$scope.cloner_injectHTML) {
-				alert("You have selected an injection set but not any options for it.  Please select one of the injection options.");
-				return;
-			}
-		}
 		
 		// Make sure there is a portal name
 		if (!$scope.cloner_portalName) {
 			alert("You must enter a name for this portal.");
+			return;
+		}
+		
+		if ($scope.cloner_injectionSet == $scope.injectionSets[0]) {
+			alert("Please select an injection set.  If you wish to clone the site as is then select the Blank injection set.");
 			return;
 		}
 		
@@ -460,6 +458,7 @@ registerController('PortalAuthController', ['$api', '$scope', '$sce', '$interval
 			action: 'clonedPortalExists',
 			name: $scope.cloner_portalName
 		},function(response){
+			
 			if (response.success === true) {
 				var res = confirm("'" + $scope.cloner_portalName + "' already exists.  Are you sure you want to overwrite this portal?");
 				if (res == false) {

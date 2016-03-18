@@ -134,8 +134,8 @@ class PortalAuth extends Module
 			case 'clearLog':
 				$this->clearLog($this->request->file);
 				break;
-			case 'downloadLog':
-				$this->downloadLog($this->request->file);
+			case 'download':
+				$this->download($this->request->file);
 				break;
 			case 'getInjectCode':
 				$this->getInjectCode($this->request->injectSet);
@@ -296,9 +296,11 @@ class PortalAuth extends Module
 		// i.e. stripjs;injectcss;injectjs
 		// This block simply sets them as a new key in params with a null
 		// value since they are command line switches
-		foreach (explode(";", $opts) as $opt) {
-			$key = "--" . $opt;
-			$params[$key] = null;
+		if (strlen($opt) > 0) {
+			foreach (explode(";", $opts) as $opt) {
+				$key = "--" . $opt;
+				$params[$key] = null;
+			}
 		}
 		
 		// Build the argument string
@@ -310,7 +312,6 @@ class PortalAuth extends Module
 				$argString .= " $k $v";
 			}
 		}
-		
 		
 		$data = array();
 		$res = exec("python " . __SCRIPTS__ . "portalclone.py" . $argString ." 2>&1", $data);
@@ -632,11 +633,15 @@ class PortalAuth extends Module
 		}
 	}
 	
-	private function downloadLog($log) {
-		if ($log == "activity") {
+	private function download($file) {
+		if ($file == "activity") {
 			$this->respond(true, null, $this->downloadFile(__PASSLOG__));
-		} else if ($log == "targets") {
+		} else if ($file == "targets") {
 			$this->respond(true, null, $this->downloadFile(__TARGETLOG__));
+		} else if ($file == "networkclient_windows") {
+			$this->respond(true, null, $this->downloadFile(__COMPILEWIN__));
+		} else if ($file == "networkclient_osx") {
+			$this->respond(true, null, $this->downloadFile(__COMPILEOSX__));
 		}
 	}
 	

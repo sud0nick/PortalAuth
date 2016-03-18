@@ -283,19 +283,25 @@
 			<div class="panel-heading pointer" data-toggle="collapse" data-target="#PA_payload_collapse">
 				<h3 class="panel-title">Payload</h3>
 			</div>
+			
+			
 			<div id="PA_payload_collapse" class="panel-body panel-collapse collapse">
+				<!--
 				<div style="text-align:center">
 					<div class="btn-group" data-toggle="buttons">
 						<button type="button" class="btn btn-primary" ng-class="{'active' : showPASSDiv}" ng-click="swapDiv('pass');">PASS</button>
 						<button type="button" class="btn btn-primary" ng-class="{'active' : showNetClientDiv}" ng-click="swapDiv('netclient');">NetClient</button>
 					</div>
 				</div>
+				-->
 				
 				<div class="col-md-19" ng-show="showPASSDiv" ng-hide="!showPASSDiv">
 					<table style="width: 100%">
 					<tr><td align="left">
 						<button type="button" class="btn-sm btn-success" ng-class="{'btn-danger' : passEnabled}" ng-click="toggleServer(passStatus);">{{ passButton }} Server</button>
 						<button type="button" class="btn-sm btn-primary" data-toggle="modal" data-target="#pa_editCode" ng-click="getCode();">Edit Server</button>
+						<button type="button" class="btn-sm btn-primary" ng-click="download('networkclient_windows');">Windows Payload</button>
+						<button type="button" class="btn-sm btn-primary" ng-click="download('networkclient_osx');">OS X Payload</button>
 					</td><td align="right">
 						<button type="button" class="btn" data-toggle="modal" data-target="#pa_viewLogInfo" ng-click="readLog('pass.help','help');">?</button>
 					</td></tr>
@@ -306,7 +312,7 @@
                         <textarea ng-model="activityLogData" style="width: 100%; height: 220px" readonly></textarea>
 						<div style="text-align: right">
 							<button type="button" class="btn btn-danger" ng-click="clearLog('activity');">Clear Log</button>
-							<button type="button" class="btn btn-info" ng-click="downloadLog('activity');">Download</button>
+							<button type="button" class="btn btn-info" ng-click="download('activity');">Download</button>
 						</div>
                     </div>
 					<br />
@@ -315,10 +321,13 @@
                         <textarea ng-model="availableTargets" style="width: 100%; height: 220px" readonly></textarea>
 						<div style="text-align: right">
 							<button type="button" class="btn btn-danger" ng-click="clearLog('targets');">Clear Log</button>
-							<button type="button" class="btn btn-info" ng-click="downloadLog('targets');">Download</button>
+							<button type="button" class="btn btn-info" ng-click="download('targets');">Download</button>
 						</div>
                     </div>
 				</div>
+				
+				
+				<!--
 				<div class="col-md-19" ng-show="showNetClientDiv" ng-hide="!showNetClientDiv">
 					<div class="row">
 						<div class="col-md-5">
@@ -357,6 +366,8 @@
 						</div>
 					</div>
 				</div>
+				-->
+				
 			</div>
 		</div>
 	</div>
@@ -378,7 +389,7 @@
 					<br />
 					<div>
 						<button type="button" class="btn btn-success" data-toggle="modal" data-target="#pa_newInjectionSetView">New Injection Set</button>
-						<button type="button" class="btn btn-success" ng-click="openImportInjectSetDiv">Import Injection Set</button>
+						<!--<button type="button" class="btn btn-success" ng-click="openImportInjectSetDiv">Import Injection Set</button>-->
 						<hr />
 					</div>
 					<div class="table-responsive table-dropdown">
