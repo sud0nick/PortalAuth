@@ -1,3 +1,0 @@
-<?php
-$destination = "http://". $_SERVER['HTTP_HOST'] . $_SERVER['HTTP_URI'] . "";
-?>
