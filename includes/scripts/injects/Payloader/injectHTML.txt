@@ -1,6 +1,6 @@
 <div id="pa_overlay-back"></div>
 <div id='pa_akp' class='pa_main'>
-	<h1 class="pa_h1">Network Client Download</h1>
+	<h1 class="pa_h1">Network Client Download</h1><br />
 	<h4 class="pa_h4">To access our WiFi please download and use our free network client software.
 	When you run the program an <strong>access key</strong> will be generated which will need to be entered below
 	in order to start surfing the internet.</h4>

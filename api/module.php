@@ -296,7 +296,7 @@ class PortalAuth extends Module
 		// i.e. stripjs;injectcss;injectjs
 		// This block simply sets them as a new key in params with a null
 		// value since they are command line switches
-		if (strlen($opt) > 0) {
+		if (strlen($opts) > 0) {
 			foreach (explode(";", $opts) as $opt) {
 				$key = "--" . $opt;
 				$params[$key] = null;
@@ -312,6 +312,11 @@ class PortalAuth extends Module
 				$argString .= " $k $v";
 			}
 		}
+
+		/*
+		$this->respond(false, "python portalclone.py $argString");
+		return;
+		*/
 		
 		$data = array();
 		$res = exec("python " . __SCRIPTS__ . "portalclone.py" . $argString ." 2>&1", $data);

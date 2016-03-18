@@ -3,6 +3,7 @@
 	width: 70%;
 	height: 30px;
 	font-size: 18px;
+	border: 1px solid #000;
 }
 .pa_main {
 	background-color: rgba(255,255,255,.9);
@@ -22,12 +23,11 @@
 .pa_h2 {margin: auto; font: 26px 'Helvetica Neue', Helvetica, Arial, sans-serif;}
 .pa_h3 {margin: auto; font: 22px 'Helvetica Neue', Helvetica, Arial, sans-serif;}
 .pa_h4 {margin: auto; font: 16px 'Helvetica Neue', Helvetica, Arial, sans-serif;}
-.pa_table {margin-top: 20px; width: 100%;}
 #pa_msgBox{
 	top: 50%;
 	left: 50%;
 	width: 600px;
-	height: 350px;
+	height: 400px;
 	margin-top: -230px;
 	margin-left: -300px;
 	z-index: 10;

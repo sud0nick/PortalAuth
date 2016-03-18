@@ -1,7 +1,7 @@
 <style>
 .pa_form-container {
    border: 1px solid #f2e3d2;
-   background: #c9b7a2;
+   background:#F0F8FF;
    -webkit-border-radius: 8px;
    -moz-border-radius: 8px;
    border-radius: 8px;
@@ -11,8 +11,8 @@
    font-family: 'Helvetica Neue',Helvetica,sans-serif;
    text-align: center;
    position: fixed;
-   max-width: 450px;
-   max-height: 370px;
+   width: 450px;
+   height: 370px;
    padding: 20px;
    top: 50%;
    left: 50%;
@@ -32,11 +32,7 @@
 	display: none;
 }
 .pa_form-field {
-   border: 1px solid #c9b7a2;
    background: #fff;
-   -webkit-border-radius: 3px;
-   -moz-border-radius: 3px;
-   border-radius: 3px;
    color: #000;
    font-size: 18px;
    -webkit-box-shadow: rgba(255,255,255,0.4) 0 1px 0;
@@ -44,7 +40,7 @@
    box-shadow: rgba(255,255,255,0.4) 0 1px 0;
    padding:8px;
    margin-bottom:20px;
-   width:100%;
+   width:90%;
 }
 .pa_form-field:focus {
    background: #fff;
