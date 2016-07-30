@@ -1,35 +1,35 @@
 registerController('PortalAuthController', ['$api', '$scope', '$sce', '$interval', function($api, $scope, $sce, $interval) {
 
 	// Settings elements
-	$scope.portalStatus				= "Loading...";
+	$scope.portalStatus			= "Loading...";
 	$scope.tServerConfig			= true;
-	$scope.testSite					= "";
-	$scope.dataExpected				= "";
-	$scope.htmlTags					= "";
+	$scope.testSite				= "";
+	$scope.dataExpected			= "";
+	$scope.htmlTags				= "";
 	$scope.portalArchive			= "";
 	$scope.macCollection			= false;
 	
 	// Status elements
-	$scope.online					= true;
-	$scope.portalExists				= false;
+	$scope.online				= true;
+	$scope.portalExists			= false;
 	$scope.stop;
 	
 	// Log elements
 	$scope.currentLogData			= "";
-	$scope.errorlogs				= "";
-	$scope.changelogs				= "";
+	$scope.errorlogs			= "";
+	$scope.changelogs			= "";
 	
 	// Auto auth elements
 	$scope.collectedMACs			= "No MACs have been collected yet.";
 	$scope.autoAuthStatus			= "Not Running";
 	
 	// Throbbers
-	$scope.showSettingsThrobber 	= false;
+	$scope.showSettingsThrobber 		= false;
 	$scope.showClonerThrobber		= false;
 	$scope.showAutoAuthThrobber		= false;
 	
 	// Divs
-	$scope.showPASSDiv				= true;
+	$scope.showPASSDiv			= true;
 	$scope.showNetClientDiv			= false;
 	$scope.showInjectManagerDiv		= true;
 	$scope.showInjectEditorDiv		= false;
@@ -46,23 +46,24 @@ registerController('PortalAuthController', ['$api', '$scope', '$sce', '$interval
 	$scope.cloner_injectHTML		= true;
 	
 	// PASS elements
-	$scope.passStatus				= "Disabled";
-	$scope.passEnabled				= false;
-	$scope.passButton				= "";
-	$scope.editorCode				= "";
-    $scope.activityLogData          = "";
-    $scope.availableTargets         = "";
+	$scope.passStatus			= "Disabled";
+	$scope.passEnabled			= false;
+	$scope.passButton			= "";
+	$scope.editorCode			= "";
+	$scope.activityLogData			= "";
+	$scope.availableTargets			= "";
 	$scope.capturedCreds			= "Nothing here yet.";
 	
 	// Injection Editor Elements
-	$scope.injectionSets				= {};
-	$scope.pa_injectJSEditor			= "";
-	$scope.pa_injectCSSEditor			= "";
-	$scope.pa_injectHTMLEditor			= "";
-	$scope.pa_injectPHPEditor			= "";
+	$scope.injectionSets			= {};
+	$scope.pa_injectJSEditor		= "";
+	$scope.pa_injectCSSEditor		= "";
+	$scope.pa_injectHTMLEditor		= "";
+	$scope.pa_injectPHPEditor		= "";
 	$scope.pa_injectMyPortalPHPEditor	= "";
-	$scope.newInjectSetName				= "";
-	
+	$scope.newInjectSetName			= "";
+
+/*	
 	$scope.autoAuth = (function(){
 		$scope.showAutoAuthThrobber = true;
 		$scope.autoAuthStatus = "Attempting authentication...";
@@ -89,6 +90,7 @@ registerController('PortalAuthController', ['$api', '$scope', '$sce', '$interval
 			$scope.showAutoAuthThrobber = false;
 		});
 	});
+*/
 	$scope.getConfigs = (function(){
 		$api.request({
 			module: 'PortalAuth',
@@ -349,16 +351,6 @@ registerController('PortalAuthController', ['$api', '$scope', '$sce', '$interval
 			}
 		});
 	});
-	$scope.checkCopyJQuery = (function(){
-		$api.request({
-			module: 'PortalAuth',
-			action: 'checkCopyJQuery'
-		},function(response){
-			if (response.success === false) {
-				alert("An error has occurred.  Check the logs for details.");
-			}
-		});
-	});
 	$scope.isOnline = (function(){
 		$api.request({
 			module: 'PortalAuth',
@@ -596,7 +588,6 @@ registerController('PortalAuthController', ['$api', '$scope', '$sce', '$interval
 	$scope.isOnline();
 	$scope.checkTestServerConfig();
 	$scope.checkPortalExists();
-	$scope.checkCopyJQuery();
 	$scope.getConfigs();
 	$scope.getLogs("change");
 	$scope.stop = $interval(function(){

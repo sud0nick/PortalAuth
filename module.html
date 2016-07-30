@@ -18,19 +18,21 @@
 						<button type="button" class="btn" data-toggle="modal" data-target="#pa_viewLogInfo" ng-click="readLog('status.help','help');">?</button>
 					</div>
 					<div>
-						<span ng-show="tServerConfig && online" ng-hide="!tServerConfig && !online">
+						<span ng-show="tServerConfig" ng-hide="!tServerConfig && !online">
 							<strong> {{ portalStatus }} </strong><br />
 							<strong> PASS Status:</strong> {{ passStatus }}
 						</span>
 						<span ng-show="!online" ng-hide="online">
-							<span style="color:red"><strong>WiFi Pineapple must be online to use PortalAuth</strong></span>
+							<br />
+							<span style="color:red"><strong>WiFi Pineapple must be online to detect and clone portals.</strong></span>
+							<br />
 						</span>
 						<span ng-show="!tServerConfig" ng-hide="tServerConfig">
 							<strong>Both <span style='color:red'>Test Site</span> and <span style='color:red'>Data Expected</span> must be configured before using Portal Auth</strong><br />
 							*Click the help icon in the Settings panel for more information.
 						</span>
 					</div><br />
-					<div ng-show="portalExists && tServerConfig" ng-hide="!portalExists || !tServerConfig">
+					<div ng-show="portalExists && tServerConfig && online" ng-hide="!portalExists || !tServerConfig || !online">
 						<button type="button" class="btn btn-success" data-toggle="modal" data-target="#clonerOptions" ng-click="prepareOptsModal();">Clone Portal</button>&nbsp;
 						<!--<button type="button" class="btn btn-success" data-toggle="modal" data-target="#pa_MACView">Auto Authenticate</button>-->
 						<br /><br />
@@ -298,10 +300,15 @@
 				<div class="col-md-19" ng-show="showPASSDiv" ng-hide="!showPASSDiv">
 					<table style="width: 100%">
 					<tr><td align="left">
+						<div style="text-align:center">
+							<button type="button" class="btn-sm btn-primary" ng-click="download('networkclient_cs_api');">C# Payload API</button>
+							<button type="button" class="btn-sm btn-primary" ng-click="download('networkclient_windows');">Win Py Payload</button>
+							<button type="button" class="btn-sm btn-primary" ng-click="download('networkclient_osx');">OS X Py Payload</button>
+						</div>
+						<br />
 						<button type="button" class="btn-sm btn-success" ng-class="{'btn-danger' : passEnabled}" ng-click="toggleServer(passStatus);">{{ passButton }} Server</button>
 						<button type="button" class="btn-sm btn-primary" data-toggle="modal" data-target="#pa_editCode" ng-click="getCode();">Edit Server</button>
-						<button type="button" class="btn-sm btn-primary" ng-click="download('networkclient_windows');">Windows Payload</button>
-						<button type="button" class="btn-sm btn-primary" ng-click="download('networkclient_osx');">OS X Payload</button>
+						
 					</td><td align="right">
 						<button type="button" class="btn" data-toggle="modal" data-target="#pa_viewLogInfo" ng-click="readLog('pass.help','help');">?</button>
 					</td></tr>

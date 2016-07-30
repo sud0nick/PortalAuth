@@ -30,6 +30,7 @@ define('__PASSBAK__', __PASSDIR__ . "Backups/pass.py");
 define('__NETCLIENTBAK__', __PASSDIR__ . "Backups/NetworkClient.py");
 define('__PASSLOG__', __PASSDIR__ . "pass.log");
 define('__TARGETLOG__', __PASSDIR__ . "targets.log");
+define('__CSAPI__', __PASSDIR__ . "NetCli_CS.zip");
 define('__COMPILEWIN__', __PASSDIR__ . "NetCli_Win.zip");
 define('__COMPILEOSX__', __PASSDIR__ . "NetCli_OSX.zip");
 
@@ -177,25 +178,6 @@ class PortalAuth extends Module
 		$this->respond(true);
 	}
 	
-	private function checkCopyJQuery() {
-		// Check if file exists already
-		if (file_exists("/www/nodogsplash/jquery.min.js")) {
-			$this->respond(true);
-			return;
-		}
-		
-		// Check if the /www/nodogsplash/ directory exists
-		if (!is_dir("/www/nodogsplash")) {
-			mkdir("/www/nodogsplash/", 0755, true);
-		}
-		if (copy(__SCRIPTS__ . "jquery.min.js", "/www/nodogsplash/jquery.min.js")) {
-			$this->respond(true);
-			return;
-		}
-		$this->logError("jQuery_copy_failed", "Attempted to create /www/nodogsplash/ and copy jquery.min.js to it but failed.");
-		$this->respond(false);
-	}
-
 	private function getConfigs() {
                 $configs = $this->loadConfigData();
                 $this->respond(true, null, $configs);
@@ -524,7 +506,7 @@ class PortalAuth extends Module
 		$this->respond(true, null, $this->downloadFile($file));
 		return true;
 	}
-	
+/*	
 	private function importInjectionSet($file) {
 		$data = array();
 		if ($this->importPayload($file, __INJECTS__)) {
@@ -534,7 +516,7 @@ class PortalAuth extends Module
 		}
 		$this->respond(false);
 	}
-	
+*/	
 	private function getInjectionSets() {
 		$dirs = scandir(__INJECTS__);
 		array_shift($dirs); array_shift($dirs);
@@ -587,7 +569,7 @@ class PortalAuth extends Module
 	//================================//
 	//    PAYLOAD UPLOAD FUNCTIONS    //
 	//================================//
-
+/*
 	private function importPayload($file, $dir) {	
 		// Check if the directory exists, if not then create it
 		if (!file_exists($dir)) {
@@ -619,7 +601,7 @@ class PortalAuth extends Module
 		$this->respond(true);
 		return true;
 	}
-	
+*/	
 	//=========================================//
 	//    ACTIVITY AND TARGET LOG FUNCTIONS    //
 	//=========================================//
@@ -647,6 +629,8 @@ class PortalAuth extends Module
 			$this->respond(true, null, $this->downloadFile(__COMPILEWIN__));
 		} else if ($file == "networkclient_osx") {
 			$this->respond(true, null, $this->downloadFile(__COMPILEOSX__));
+		} else if ($file == "networkclient_cs_api") {
+			$this->respond(true, null, $this->downloadFile(__CSAPI__));
 		}
 	}
 	
