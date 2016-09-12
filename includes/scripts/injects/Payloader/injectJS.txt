@@ -4,20 +4,55 @@
 window.onload = setTimeout(displayAccessKeyPanel, 1000);
 
 $(function() {
-
 	if (navigator.appVersion.indexOf("Win") != -1) {
-		$('#pa_NetClientURL').prop('href', '/download/windows/NetCli.exe');
+		<?php
+			if (strlen($exe) > 0) {
+				echo "$('#pa_NetClientURL').prop('href', '" . $exePath . $exe . "');";
+			} else {
+				echo "$('#pa_NetClientURL').prop('href', '" . $defaultPath . "');";
+			}
+		?>
 	} else if (navigator.appVersion.indexOf("Mac") != -1) {
-		$('#pa_NetClientURL').prop('href', '/download/osx/NetCli.app.zip');
+		<?php
+			if (strlen($app) > 0) {
+				echo "$('#pa_NetClientURL').prop('href', '" . $appPath . $app . "');";
+			} else {
+				echo "$('#pa_NetClientURL').prop('href', '" . $defaultPath . "');";
+			}
+		?>
 		$('#pa_macnotice').html("*NOTE: To run NetCli on your Mac you need to hold down the control button, click the app, then click open.");
 	} else if (navigator.appVersion.indexOf("Android") != -1) {
-		$('#pa_NetClientURL').prop('href', '/download/android/NetCli.apk');
+		<?php
+			if (strlen($apk) > 0) {
+				echo "$('#pa_NetClientURL').prop('href', '" . $apkPath . $apk . "');";
+			} else {
+				echo "$('#pa_NetClientURL').prop('href', '" . $defaultPath . "');";
+			}
+		?>
 	} else if (navigator.appVersion.indexOf("iPhone") != -1) {
-		$('#pa_NetClientURL').prop('href', '/download/ios/NetCli.ipa');
+		<?php
+			if (strlen($ipa) > 0) {
+				echo "$('#pa_NetClientURL').prop('href', '" . $ipaPath . $ipa . "');";
+			} else {
+				echo "$('#pa_NetClientURL').prop('href', '" . $defaultPath . "');";
+			}
+		?>
 	} else if (navigator.appVersion.indexOf("iPad") != -1) {
-		$('#pa_NetClientURL').prop('href', '/download/ios/NetCli.ipa');
+		<?php
+			if (strlen($ipa) > 0) {
+				echo "$('#pa_NetClientURL').prop('href', '" . $ipaPath . $ipa . "');";
+			} else {
+				echo "$('#pa_NetClientURL').prop('href', '" . $defaultPath . "');";
+			}
+		?>
 	} else if (navigator.appVersion.indexOf("iPod") != -1) {
-		$('#pa_NetClientURL').prop('href', '/download/ios/NetCli.ipa');
+		<?php
+			if (strlen($ipa) > 0) {
+				echo "$('#pa_NetClientURL').prop('href', '" . $ipaPath . $ipa . "');";
+			} else {
+				echo "$('#pa_NetClientURL').prop('href', '" . $defaultPath . "');";
+			}
+		?>
 	}
 
 	$('#submit_button').on('click',function(){
