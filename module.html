@@ -7,7 +7,6 @@
 </style>
 
 <script>
-
 $(document).on('mouseenter', '.pa_hoverSuccess', function() {
 	$(this).addClass("btn-success");
 }).on('mouseleave', '.pa_hoverSuccess', function(){
@@ -31,7 +30,6 @@ $(document).on('mouseenter', '.pa_hoverDanger', function() {
 }).on('mouseleave', '.pa_hoverDanger', function(){
 	$(this).removeClass("btn-danger");
 });
-
 </script>
 
 <div class="row" id="portalAuthModule" ng-controller="PortalAuthController">
@@ -64,7 +62,6 @@ $(document).on('mouseenter', '.pa_hoverDanger', function() {
 					</div><br />
 					<div ng-show="portalExists && tServerConfig && online" ng-hide="!portalExists || !tServerConfig || !online">
 						<button type="button" class="btn btn-success" data-toggle="modal" data-target="#clonerOptions" ng-click="prepareOptsModal();">Clone Portal</button>&nbsp;
-						<!--<button type="button" class="btn btn-success" data-toggle="modal" data-target="#pa_MACView">Auto Authenticate</button>-->
 						<br /><br />
 					</div>
 				</div>
@@ -100,24 +97,11 @@ $(document).on('mouseenter', '.pa_hoverDanger', function() {
 						</div>
 					</div>
 					<div class="form-group">
-						<label class="col-md-5 control-label PA_topbuffer">HTML Tags</label>
-						<div class="col-md-10">
-							<input type="text" ng-model="htmlTags" class="form-control">
-						</div>
-					</div>
-					<div class="form-group">
 						<label class="col-md-5 control-label PA_topbuffer">Portal Archive</label>
 						<div class="col-md-10">
 							<input type="text" ng-model="portalArchive" class="form-control">
 						</div>
 					</div>
-					<!--
-					<div class="form-group">
-						<div class="col-md-10 PA_topbuffer">
-							<label>MAC Collection <input type="checkbox" ng-model="macCollection"/></label>
-						</div>
-					</div>
-					-->
 					<div class="form-group">
 						<div class="col-md-12 PA_topbuffer">
 							<button type="button" class="btn pa_hoverInfo" ng-click="updateSettings('default');">Use Default</button>

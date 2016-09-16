@@ -27,7 +27,6 @@ define('__IOSDL__', __DOWNLOAD__ . "ios/");
 define('__PASSDIR__', __INCLUDES__ . "pass/");
 define('__PASSSRV__', __PASSDIR__ . "pass.py");
 define('__PASSBAK__', __PASSDIR__ . "Backups/pass.py");
-define('__NETCLIENTBAK__', __PASSDIR__ . "Backups/NetworkClient.py");
 define('__PASSLOG__', __PASSDIR__ . "pass.log");
 define('__TARGETLOG__', __PASSDIR__ . "targets.log");
 define('__CSAPI__', __PASSDIR__ . "NetCli_CS.zip");
@@ -99,9 +98,6 @@ class PortalAuth extends Module
 			case 'getConfigs':
 				$this->getConfigs();
 				break;
-			case 'checkConnection':
-				$this->checkIsOnline();
-				break;
 			case 'updateConfigs':
 				$this->saveConfigData($this->request->params);
 				break;
@@ -113,9 +109,6 @@ class PortalAuth extends Module
 				break;
 			case 'deleteLog':
 				$this->deleteLog($this->request->file);
-				break;
-			case 'checkCopyJQuery':
-				$this->checkCopyJQuery();
 				break;
 			case 'isOnline':
 				$this->checkIsOnline();
@@ -208,12 +201,6 @@ class PortalAuth extends Module
 			case 'createInjectionSet':
 				$this->createInjectionSet($this->request->name);
 				break;
-			case 'autoAuth':
-				$this->autoAuthenticate();
-				break;
-			case 'scanMACs':
-				$this->scanNetwork();
-				break;
 			case 'getCapturedCreds':
 				$this->getCapturedCreds();
 				break;
@@ -249,9 +236,9 @@ class PortalAuth extends Module
 	}
 	
 	private function getConfigs() {
-                $configs = $this->loadConfigData();
-                $this->respond(true, null, $configs);
-        }
+			$configs = $this->loadConfigData();
+			$this->respond(true, null, $configs);
+	}
 	
 	//======================//
 	//    MISC FUNCTIONS    //
@@ -281,40 +268,6 @@ class PortalAuth extends Module
 
 	private function respond($success, $msg = null, $data = null) {
 		$this->response = array("success" => $success,"message" => $msg, "data" => $data);
-	}
-	
-	//======================//
-	//    MAC COLLECTION    //
-	//======================//
-	
-	private function scanNetwork() {
-		$data = array();
-		$res = exec(__SCRIPTS__ . "scan.sh", $data);
-		if ($res == "failed") {
-			$this->logError("MAC_Scan_Error", implode("\r\n",$data));
-			$this->respond(false);
-		} else {
-			$this->response(true, null, implode(";",$data));
-		}
-	}
-	
-	private function allowsMACCollection() {
-		$configs = $this->loadConfigData();
-		if ($configs['mac_collection'] == "") {
-			$this->respond(false);
-			return;
-		}
-		$this->respond(true);
-	}
-	
-	private function saveCapturedMACs($macs) {
-		$fh = fopen(__INCLUDES__ . "macs.txt", "w+");
-		fwrite($fh, $macs);
-		fclose($fh);
-	}
-	
-	private function getCapturedMACs() {
-		$this->respond(true, null, file_get_contents(__INCLUDES__ . "macs.txt"));
 	}
 	
 	//========================//
@@ -388,19 +341,6 @@ class PortalAuth extends Module
 		}
 		$this->respond(false);
 		return false;
-	}
-	
-	private function autoAuthenticate() {
-		$configs = $this->loadConfigData();
-		$args = implode(" ", explode(";", $configs['tags']));
-		$data = array();
-		$res = exec("python " . __SCRIPTS__ . "portalauth.py " . $configs['testSite'] . " " . $args . " 2>&1", $data);
-		if ($res != "Complete") {
-			$this->logError("auto_auth_error", implode("\r\n",$data));
-			$this->respond(false);
-		}
-		$this->respond(true, $this->portalExists());
-		return true;
 	}
 	
 	//======================//
@@ -499,7 +439,7 @@ class PortalAuth extends Module
 		$config_file = fopen(__CONFIG__, "r");
 		if ($config_file) {
 			while (($line = fgets($config_file)) !== false) {
-				$item = explode("=", $line);
+				$item = explode("=", $line, 2);
 				$key = $item[0]; $val = trim($item[1]);
 				$configs[$key] = $val;
 			}

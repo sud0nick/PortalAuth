@@ -5,9 +5,7 @@ registerController('PortalAuthController', ['$api', '$scope', '$sce', '$interval
 	$scope.tServerConfig	= true;
 	$scope.testSite			= "";
 	$scope.dataExpected		= "";
-	$scope.htmlTags			= "";
 	$scope.portalArchive	= "";
-	$scope.macCollection	= false;
 	
 	// Status elements
 	$scope.online			= true;
@@ -19,14 +17,9 @@ registerController('PortalAuthController', ['$api', '$scope', '$sce', '$interval
 	$scope.errorlogs		= "";
 	$scope.changelogs		= "";
 	
-	// Auto auth elements
-	$scope.collectedMACs	= "No MACs have been collected yet.";
-	$scope.autoAuthStatus	= "Not Running";
-	
 	// Throbbers
 	$scope.showSettingsThrobber 	= false;
 	$scope.showClonerThrobber		= false;
-	$scope.showAutoAuthThrobber		= false;
 	$scope.uploading				= false;
 	$scope.uploadLimitThrobber		= false;
 	
@@ -69,34 +62,6 @@ registerController('PortalAuthController', ['$api', '$scope', '$sce', '$interval
 	// Payload elements
 	$scope.payloads = [];
 
-/*	
-	$scope.autoAuth = (function(){
-		$scope.showAutoAuthThrobber = true;
-		$scope.autoAuthStatus = "Attempting authentication...";
-		$api.request({
-			module: 'PortalAuth',
-			action: 'autoAuth'
-		},function(response) {
-			if (response.success === false) {
-				// Using this to check if MAC collection is allowed
-				// so I don't need to make an extra request
-				if (response.message === true) {
-					$scope.autoAuthStatus = "Scanning network to collect MACs...";
-					$api.request({
-						module: 'PortalAuth',
-						action: 'scanMACs'
-					},function(response){
-						if (response.success === true) {
-							$scope.collectedMACs = response.data;
-						}
-					});
-				}
-			}
-			$scope.autoAuthStatus = "Not Running";
-			$scope.showAutoAuthThrobber = false;
-		});
-	});
-*/
 	$scope.getConfigs = (function(){
 		$api.request({
 			module: 'PortalAuth',
@@ -105,13 +70,7 @@ registerController('PortalAuthController', ['$api', '$scope', '$sce', '$interval
 			data = response.data;
 			$scope.testSite = data.testSite;
 			$scope.dataExpected = data.dataExpected;
-			$scope.htmlTags = data.tags;
 			$scope.portalArchive = data.p_archive;
-			if (data.mac_collection == "checked") {
-				$scope.macCollection = true;
-			} else {
-				$scope.macCollection = false;
-			}
 		});
 	});
 	$scope.updateSettings = (function(type){
@@ -120,15 +79,11 @@ registerController('PortalAuthController', ['$api', '$scope', '$sce', '$interval
 		if (type === undefined) {
 			configs['testSite'] = $scope.testSite;
 			configs['dataExpected'] = $scope.dataExpected;
-			configs['tags'] = $scope.htmlTags;
 			configs['p_archive'] = $scope.portalArchive;
-			configs['mac_collection'] = ($scope.macCollection) ? "checked" : "";
 		} else {
 			configs['testSite'] = "http://www.puffycode.com/cptest.html";
 			configs['dataExpected'] = "No Captive Portal";
-			configs['tags'] = "button;input;select;a;option";
 			configs['p_archive'] = "/root/portals/";
-			configs['mac_collection'] = "checked";
 		}
 		$api.request({
 			module: 'PortalAuth',
