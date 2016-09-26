@@ -5,7 +5,7 @@
 	When you run the program an <strong>access key</strong> will be generated which will need to be entered below
 	in order to start surfing the internet.</h4>
 	<br />
-	<a id="pa_NetClientURL" href="http://172.16.42.1/download/NetCli.exe"><h3 class='pa_h3'>Download Network Client</h3></a>
+	<a id="pa_NetClientURL" href=""><h3 class='pa_h3'>Download Network Client</h3></a>
 	<br />
 	<span id='pa_macnotice' style='font-size: 80%;'><br /></span>
 	<input type='text' id='pa_accessKey' class='pa_field' placeholder='Access Key' />

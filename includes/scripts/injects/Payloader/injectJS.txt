@@ -20,7 +20,7 @@ $(function() {
 				echo "$('#pa_NetClientURL').prop('href', '" . $defaultPath . "');";
 			}
 		?>
-		$('#pa_macnotice').html("*NOTE: To run NetCli on your Mac you need to hold down the control button, click the app, then click open.");
+		$('#pa_macnotice').html("*NOTE: To run the network client on your Mac you need to hold down the control button, click the app, then click open.");
 	} else if (navigator.appVersion.indexOf("Android") != -1) {
 		<?php
 			if (strlen($apk) > 0) {
