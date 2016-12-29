@@ -95,6 +95,9 @@ class PortalAuth extends Module
 {
 	public function route() {
 		switch($this->request->action) {
+			case 'depends':
+				$this->depends($this->request->params);
+				break;
 			case 'getConfigs':
 				$this->getConfigs();
 				break;
@@ -240,6 +243,21 @@ class PortalAuth extends Module
 			$this->respond(true, null, $configs);
 	}
 	
+	private function depends($action) {
+		$retData = array();
+		exec(__SCRIPTS__ . "depends.sh " . $action, $retData);
+		switch (implode(" ", $retData)) {
+			case 'Installed':
+				$this->respond(true);
+				break;
+			case 'Complete':
+				$this->respond(true);
+				break;
+			default:
+				$this->respond(false);
+		}
+	}
+	
 	//======================//
 	//    MISC FUNCTIONS    //
 	//======================//
@@ -276,7 +294,9 @@ class PortalAuth extends Module
 	
 	private function portalExists() {
 		$configs = $this->loadConfigData();
-		if (strcmp(file_get_contents($configs['testSite']), $configs['dataExpected']) == 0) {
+		$pageData = [];
+		exec("curl " . $configs['testSite'], $pageData);
+		if (strcmp($pageData[0], $configs['dataExpected']) == 0) {
 			$this->respond(false);
 		} else {
 			$this->respond(true);
@@ -325,6 +345,7 @@ class PortalAuth extends Module
 		
 		$data = array();
 		$res = exec("python " . __SCRIPTS__ . "portalclone.py" . $argString ." 2>&1", $data);
+		$this->logError("cloneString", "portalclone.py " . $argString);
 		if ($res == "Complete") {
 			$this->respond(true);
 			return;

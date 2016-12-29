@@ -7,9 +7,14 @@ registerController('PortalAuthController', ['$api', '$scope', '$sce', '$interval
 	$scope.dataExpected		= "";
 	$scope.portalArchive	= "";
 	
+	// Depends elements
+	$scope.dependsInstalled		= true;
+	$scope.dependsProcessing	= false;
+	
 	// Status elements
 	$scope.online			= true;
 	$scope.portalExists		= false;
+	$scope.checkingPortal	= false;
 	$scope.stop;
 	
 	// Log elements
@@ -61,6 +66,26 @@ registerController('PortalAuthController', ['$api', '$scope', '$sce', '$interval
 	
 	// Payload elements
 	$scope.payloads = [];
+	
+	$scope.depends = (function(act) {
+		$scope.dependsProcessing = true;
+		$api.request({
+			module: 'PortalAuth',
+			action: 'depends',
+			params: act
+		},function(response){
+			if (act == "-check" || act == "-install") {
+				$scope.dependsInstalled = response.success;
+				if (act == "-install" && response.success === true) {
+					$scope.checkPortalExists();
+				}
+			}
+			if (act == "-remove") {
+				$scope.dependsInstalled = !response.success;
+			}
+			$scope.dependsProcessing = false;
+		});
+	});
 
 	$scope.getConfigs = (function(){
 		$api.request({
@@ -81,7 +106,7 @@ registerController('PortalAuthController', ['$api', '$scope', '$sce', '$interval
 			configs['dataExpected'] = $scope.dataExpected;
 			configs['p_archive'] = $scope.portalArchive;
 		} else {
-			configs['testSite'] = "http://www.puffycode.com/cptest.html";
+			configs['testSite'] = "https://www.puffycode.com/cptest.html";
 			configs['dataExpected'] = "No Captive Portal";
 			configs['p_archive'] = "/root/portals/";
 		}
@@ -321,6 +346,7 @@ registerController('PortalAuthController', ['$api', '$scope', '$sce', '$interval
 		});
 	});
 	$scope.checkPortalExists = (function(){
+		$scope.checkingPortal = true;
 		$api.request({
 			module: 'PortalAuth',
 			action: 'checkPortalExists'
@@ -331,6 +357,7 @@ registerController('PortalAuthController', ['$api', '$scope', '$sce', '$interval
 			} else {
 				$scope.portalStatus = "No Captive Portal Detected";
 			}
+			$scope.checkingPortal = false;
 		});
 	});
 	$scope.newInjectionSet = (function(){
@@ -634,6 +661,7 @@ registerController('PortalAuthController', ['$api', '$scope', '$sce', '$interval
 	});
 
 	// Init functions
+	$scope.depends("-check");
 	$scope.isOnline();
 	$scope.checkTestServerConfig();
 	$scope.checkPortalExists();

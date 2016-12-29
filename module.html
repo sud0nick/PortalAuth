@@ -46,9 +46,10 @@ $(document).on('mouseenter', '.pa_hoverDanger', function() {
 						<button type="button" class="btn" data-toggle="modal" data-target="#pa_viewLogInfo" ng-click="readLog('status.help','help');">?</button>
 					</div>
 					<div>
-						<span ng-show="tServerConfig" ng-hide="!tServerConfig && !online">
+						<span ng-show="tServerConfig && dependsInstalled" ng-hide="!tServerConfig && !online || !dependsInstalled">
 							<strong> {{ portalStatus }} </strong><br />
 							<strong> PASS Status:</strong> {{ passStatus }}
+							<img ng-show="checkingPortal" ng-hide="!checkingPortal" src='/img/throbber.gif'/>
 						</span>
 						<span ng-show="!online" ng-hide="online">
 							<br />
@@ -60,9 +61,15 @@ $(document).on('mouseenter', '.pa_hoverDanger', function() {
 							*Click the help icon in the Settings panel for more information.
 						</span>
 					</div><br />
-					<div ng-show="portalExists && tServerConfig && online" ng-hide="!portalExists || !tServerConfig || !online">
+					<div ng-show="portalExists && tServerConfig && online && dependsInstalled" ng-hide="!portalExists || !tServerConfig || !online || !dependsInstalled">
 						<button type="button" class="btn btn-success" data-toggle="modal" data-target="#clonerOptions" ng-click="prepareOptsModal();">Clone Portal</button>&nbsp;
 						<br /><br />
+					</div>
+					<div>
+						<strong>Dependencies</strong><br />
+						<button type="button" class="btn btn-success" ng-show="!dependsInstalled" ng-disabled="dependsProcessing" ng-hide="dependsInstalled" ng-click="depends('-install');"><img src="/modules/PortalAuth/includes/icons/glyphicons-182-download-alt.png"/>&nbsp;&nbsp;Install</button>
+						<button type="button" class="btn papers_hoverDanger" ng-show="dependsInstalled" ng-disabled="dependsProcessing" ng-hide="!dependsInstalled" ng-click="depends('-remove');"><img src="/modules/PortalAuth/includes/icons/glyphicons-198-remove-circle.png"/>&nbsp;&nbsp;Uninstall</button>
+						<img ng-show="dependsProcessing" ng-hide="!dependsProcessing" src='/img/throbber.gif'/>
 					</div>
 				</div>
 			</div>

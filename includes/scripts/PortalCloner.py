@@ -10,6 +10,9 @@ libs_dir = os.path.join(parent_dir, 'libs')
 sys.path.append(libs_dir)
 
 import requests
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
+requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+
 import urlparse
 import tinycss
 import collections
@@ -29,6 +32,7 @@ class PortalCloner:
 		self.session = requests.Session()
 		self.basePath = '/pineapple/modules/PortalAuth/'
 		self.threads = []
+		self.uas = {"User-Agent":"Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36"}
 		
 		
 	def find_meta_refresh(self, r):
@@ -58,7 +62,7 @@ class PortalCloner:
 				
 	
 	def parseCSS(self, url):
-		r = requests.get(url)
+		r = requests.get(url, headers=self.uas)
 		urls = []
 		parser = tinycss.make_parser('page3')
 		try:
@@ -93,7 +97,7 @@ class PortalCloner:
 				os.makedirs(path)
 				
 		# Attempt to open an external web page and load the HTML
-		response = requests.get(url, verify=False)
+		response = requests.get(url, headers=self.uas, verify=False)
 
 		# Get the actual URL - This accounts for redirects - and set the class variable with it
 		self.url = response.url
@@ -190,7 +194,7 @@ class PortalCloner:
 		for css_file, urls in self.css_urls.iteritems():
 
 			# Open the CSS file and get the contents
-			fh = open(self.portalDirectory + css_file).read().decode('utf-8')
+			fh = open(self.portalDirectory + css_file).read().decode('utf-8', 'ignore')
 
 			# Iterate over the URLs associated with this CSS file
 			for _fileurl in urls:
