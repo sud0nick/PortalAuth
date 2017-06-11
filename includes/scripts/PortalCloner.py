@@ -1,13 +1,19 @@
+from __future__ import absolute_import
 import os
 import re
 import sys
 import shutil
+from contextlib import closing
 
 parent_dir = os.path.abspath(os.path.dirname(__file__))
 libs_dir = os.path.join(parent_dir, 'libs')
 sys.path.append(libs_dir)
 
 import requests
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
+requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+
+import threading
 import urlparse
 import tinycss
 import collections
@@ -26,8 +32,7 @@ class PortalCloner:
 		self.soup = None
 		self.session = requests.Session()
 		self.basePath = '/pineapple/modules/PortalAuth/'
-		
-		
+		self.uas = {"User-Agent":"Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36"}
 		
 		
 	def find_meta_refresh(self, r):
@@ -43,24 +48,20 @@ class PortalCloner:
 		return False, r
 	
 
-	
-	def follow_redirects(self, r,s):
+	def follow_redirects(self, r, s):
 		redirected, new_url = self.find_meta_refresh(r)
 		if redirected:
 			r = self.follow_redirects(self.session.get(urlparse.urljoin(r.url, new_url)), s)
 		return r
-		
-		
-		
-	def downloadFile(self, r,name):
-		with open(self.resourceDirectory + name, 'wb') as out_file:
-			for chunk in r.iter_content(4096):
-				out_file.write(chunk)
-			
-			
-			
+	
+	def downloadFile(self, url, name):
+		with closing(self.session.get(urlparse.urljoin(self.url, url), stream=True, verify=False)) as r:
+			with open(self.resourceDirectory + name, 'wb') as out_file:
+				for chunk in r.iter_content(8192):
+					out_file.write(chunk)
+	
 	def parseCSS(self, url):
-		r = requests.get(url)
+		r = requests.get(url, headers=self.uas)
 		urls = []
 		parser = tinycss.make_parser('page3')
 		try:
@@ -76,7 +77,6 @@ class PortalCloner:
 		return urls
 		
 		
-		
 	def checkFileName(self, orig):
 		filename, file_ext = os.path.splitext(orig)
 		path = self.resourceDirectory + filename + file_ext
@@ -89,7 +89,6 @@ class PortalCloner:
 		return fname
 		
 		
-		
 	def fetchPage(self, url):
 		# Check if the proper directories exist and create them if not
 		for path in [self.portalDirectory, self.resourceDirectory]:
@@ -97,7 +96,7 @@ class PortalCloner:
 				os.makedirs(path)
 				
 		# Attempt to open an external web page and load the HTML
-		response = requests.get(url, verify=False)
+		response = requests.get(url, headers=self.uas, verify=False)
 
 		# Get the actual URL - This accounts for redirects - and set the class variable with it
 		self.url = response.url
@@ -110,18 +109,26 @@ class PortalCloner:
 
 		# Create a BeautifulSoup object to hold our HTML structure
 		self.soup = BeautifulSoup(response.text, "html.parser")
-
-
-
+	
+	
+	def cloneResources(self):
+	
+		# Define a list in which to store the locations of all resources
+		# to be downloaded.
+		resourceURLs = []
 
 		
-	def cloneResources(self):
 		# Download all linked JS files and remove all inline JavaScript
 		for script in self.soup.find_all('script'):
 			if script.has_attr('src'):
+			
+				# Get the name of the resource
 				fname = str(script.get('src')).split("/")[-1]
-				r = self.session.get(urlparse.urljoin(self.url, script.get('src')), stream=True, verify=False)
-				self.downloadFile(r,fname)
+				
+				# Download the resource
+				resourceURLs.append([script.get('src'), fname])
+				
+				# Change the url to the resource in the cloned file
 				script['src'] = "resources/" + fname
 				
 		# Search through all tags for the style attribute and gather inline CSS references
@@ -132,9 +139,12 @@ class PortalCloner:
 					token = token.strip()
 					if token.lower().startswith("url"):
 						imageURL = token.replace("url(","").replace(")","").strip('"\'')
+						
+						# Get the name of the resource
 						fname = imageURL.split("/")[-1]
-						r = self.session.get(urlparse.urljoin(self.url, imageURL), stream=True, verify=False)
-						self.downloadFile(r, fname)
+						
+						# Download the resource
+						resourceURLs.append([imageURL, fname])
 
 						# Change the inline CSS
 						tag['style'].replace(imageURL, "resources/" + fname)
@@ -145,9 +155,12 @@ class PortalCloner:
 			stylesheet = parser.parse_stylesheet(style.string)
 			for rule in stylesheet.rules:
 				if rule.at_keyword == "@import":
+				
+					# Get the name of the resource
 					fname = str(rule.uri).split("/")[-1]
-					r = self.session.get(urlparse.urljoin(self.url, rule.uri), stream=True, verify=False)
-					self.downloadFile(r, fname)
+					
+					# Download the resource
+					resourceURLs.append([rul.uri, fname])
 					
 					# Parse the CSS to get image links
 					_key = "resources/" + fname
@@ -181,20 +194,34 @@ class PortalCloner:
 				_key = "resources/" + fname
 				self.css_urls[_key] = self.parseCSS(urlparse.urljoin(self.url, img.get(tag)))
 
-			# Download the file
+			# Check the file name for bad characters
 			checkedName = self.checkFileName(fname)
-			r = self.session.get(urlparse.urljoin(self.url, img.get(tag)), stream=True, verify=False)
-			self.downloadFile(r, checkedName)
+			
+			# Download the resource
+			resourceURLs.append([img.get(tag), checkedName])
 			
 			# Change the image src to look for the image in resources
 			img[tag] = "resources/" + checkedName
+			
+		# Spawn threads to begin downloading all resources
+		# r[0] is the URL of the resource
+		# r[1] is the name of the resource that will be saved
+		threads = []
+		for r in resourceURLs:
+			t = threading.Thread(target=self.downloadFile, args=(r[0], r[1]))
+			threads.append(t)
+			t.start()
+			
+		# Wait for the threads to complete
+		for t in threads:
+			t.join()
 			
 		# Download any images found in the CSS file and change the link to resources
 		# This occurs AFTER the CSS files have already been copied
 		for css_file, urls in self.css_urls.iteritems():
 
 			# Open the CSS file and get the contents
-			fh = open(self.portalDirectory + css_file).read().decode('utf-8')
+			fh = open(self.portalDirectory + css_file).read().decode('utf-8', 'ignore')
 
 			# Iterate over the URLs associated with this CSS file
 			for _fileurl in urls:
@@ -205,8 +232,7 @@ class PortalCloner:
 				# Download the image from the web server
 				checkedName = self.checkFileName(fname)
 				try:
-					r = self.session.get(urlparse.urljoin(self.url, _fileurl), stream=True, verify=False)
-					self.downloadFile(r, checkedName)
+					resourceURLs.append([_fileurl, checkedName])
 				except:
 					pass
 				
@@ -218,16 +244,12 @@ class PortalCloner:
 			fw.write(fh.encode('utf-8'))
 			fw.flush()
 			fw.close()
-		
-		
-		
-		
+			
 	def stripJS(self):
 		for script in self.soup.find_all('script'):
 			script.clear()
 	
-	
-	
+
 	def stripCSS(self):
 		for tag in self.soup():
 			if tag.has_attr('style'):
@@ -236,13 +258,11 @@ class PortalCloner:
 		for style in self.soup.find_all("style"):
 			style.clear()
 			
-
 	
 	def stripLinks(self):
 		# Find and clear all href attributes from a tags
 		for link in self.soup.find_all('a'):
 			link['href'] = ""
-		
 		
 		
 	def stripForms(self):
@@ -253,23 +273,20 @@ class PortalCloner:
 
 			# Clear the form
 			form.clear()
-		
-		
+
 	
 	def injectJS(self):
 		# Add user defined functions from injectJS.txt
 		with open(self.basePath + 'includes/scripts/injects/' + self.injectionSet + '/injectJS.txt', 'r') as injectJS:
 			self.soup.head.append(injectJS.read())
 		
-		
-		
+	
 	def injectCSS(self):
 		# Add user defined CSS from injectCSS.txt
 		with open(self.basePath + 'includes/scripts/injects/' + self.injectionSet + '/injectCSS.txt', 'r') as injectCSS:
 			self.soup.head.append(injectCSS.read())
 		
-		
-		
+	
 	def injectHTML(self):
 		# Append our HTML elements to the body of the web page
 		with open(self.basePath + 'includes/scripts/injects/' + self.injectionSet + '/injectHTML.txt', 'r') as injectHTML:

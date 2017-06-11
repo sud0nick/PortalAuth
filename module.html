@@ -46,9 +46,10 @@ $(document).on('mouseenter', '.pa_hoverDanger', function() {
 						<button type="button" class="btn" data-toggle="modal" data-target="#pa_viewLogInfo" ng-click="readLog('status.help','help');">?</button>
 					</div>
 					<div>
-						<span ng-show="tServerConfig" ng-hide="!tServerConfig && !online">
+						<span ng-show="tServerConfig && dependsInstalled" ng-hide="!tServerConfig && !online || !dependsInstalled">
 							<strong> {{ portalStatus }} </strong><br />
 							<strong> PASS Status:</strong> {{ passStatus }}
+							<img ng-show="checkingPortal" ng-hide="!checkingPortal" src='/img/throbber.gif'/>
 						</span>
 						<span ng-show="!online" ng-hide="online">
 							<br />
@@ -60,9 +61,15 @@ $(document).on('mouseenter', '.pa_hoverDanger', function() {
 							*Click the help icon in the Settings panel for more information.
 						</span>
 					</div><br />
-					<div ng-show="portalExists && tServerConfig && online" ng-hide="!portalExists || !tServerConfig || !online">
+					<div ng-show="portalExists && tServerConfig && online && dependsInstalled" ng-hide="!portalExists || !tServerConfig || !online || !dependsInstalled">
 						<button type="button" class="btn btn-success" data-toggle="modal" data-target="#clonerOptions" ng-click="prepareOptsModal();">Clone Portal</button>&nbsp;
 						<br /><br />
+					</div>
+					<div>
+						<strong>Dependencies</strong><br />
+						<button type="button" class="btn btn-success" ng-show="!dependsInstalled" ng-disabled="dependsProcessing" ng-hide="dependsInstalled" ng-click="depends('-install');"><img src="/modules/PortalAuth/includes/icons/glyphicons-182-download-alt.png"/>&nbsp;&nbsp;Install</button>
+						<button type="button" class="btn papers_hoverDanger" ng-show="dependsInstalled" ng-disabled="dependsProcessing" ng-hide="!dependsInstalled" ng-click="depends('-remove');"><img src="/modules/PortalAuth/includes/icons/glyphicons-198-remove-circle.png"/>&nbsp;&nbsp;Uninstall</button>
+						<img ng-show="dependsProcessing" ng-hide="!dependsProcessing" src='/img/throbber.gif'/>
 					</div>
 				</div>
 			</div>
@@ -146,8 +153,40 @@ $(document).on('mouseenter', '.pa_hoverDanger', function() {
 									<select class="form-control" ng-model="cloner_injectionSet" ng-options="set for set in injectionSets"></select>
 								</div>
 							</div>
+							
+							<div class="form-group" ng-hide="cloner_injectionSet != 'Payloader'" ng-show="cloner_injectionSet == 'Payloader'">
+								<div class="col-md-12 PA_topbuffer">
+									<hr />
+									<div class="col-md-6">
+										<label>Windows</label>
+										<select class="form-control" ng-model="cloner_windowsPayload" ng-change="updateDefaultPayload();" ng-options="payload.fileName for payload in payloads"></select>
+									</div>
+									<div class="col-md-6">
+										<label>OS X</label>
+										<select class="form-control" ng-model="cloner_osxPayload" ng-change="updateDefaultPayload();" ng-options="payload.fileName for payload in payloads"></select>
+									</div>
+								</div>
+								<div class="col-md-12 PA_topbuffer">
+									<div class="col-md-6">
+										<label>Android</label>
+										<select class="form-control" ng-model="cloner_androidPayload" ng-change="updateDefaultPayload();" ng-options="payload.fileName for payload in payloads"></select>
+									</div>
+									<div class="col-md-6">
+										<label>iOS</label>
+										<select class="form-control" ng-model="cloner_iosPayload" ng-change="updateDefaultPayload();" ng-options="payload.fileName for payload in payloads"></select>
+									</div>
+								</div>
+								<div class="col-md-12 PA_topbuffer">
+									<div class="col-md-6 col-md-offset-3">
+										<label>Default Payload</label>
+										<select class="form-control" ng-model="cloner_defaultPayload" ng-options="os for os in cloner_OSes"></select>
+									</div>
+								</div>
+							</div>
+							
 							<div class="form-group">
 								<div class="col-md-12 PA_topbuffer">
+									<hr />
 									<div class="col-md-6">
 										<label class="checkbox-inline">
 											<input type="checkbox" ng-model="cloner_stripLinks"><strong>Strip Links</strong>
@@ -346,7 +385,7 @@ $(document).on('mouseenter', '.pa_hoverDanger', function() {
 							<th>Actions</th>
 						</thead>
 						<tbody>
-							<tr ng-repeat="payload in payloads">
+							<tr ng-repeat="payload in payloads" ng-if="payload.fileName != 'None'">
 								<td>{{ payload.fileName }}</td>
 								<td>{{ payload.filePath }}</td>
 								<td><button class="btn pa_hoverDanger" ng-click="deletePayload(payload);"><img src="/modules/PortalAuth/includes/icons/glyphicons-17-bin.png"/></button>

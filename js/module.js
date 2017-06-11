@@ -7,9 +7,14 @@ registerController('PortalAuthController', ['$api', '$scope', '$sce', '$interval
 	$scope.dataExpected		= "";
 	$scope.portalArchive	= "";
 	
+	// Depends elements
+	$scope.dependsInstalled		= true;
+	$scope.dependsProcessing	= false;
+	
 	// Status elements
 	$scope.online			= true;
 	$scope.portalExists		= false;
+	$scope.checkingPortal	= false;
 	$scope.stop;
 	
 	// Log elements
@@ -32,6 +37,12 @@ registerController('PortalAuthController', ['$api', '$scope', '$sce', '$interval
 	// Cloner options defaults
 	$scope.cloner_portalName		= "";
 	$scope.cloner_injectionSet		= "";
+	$scope.cloner_windowsPayload	= "";
+	$scope.cloner_osxPayload		= "";
+	$scope.cloner_androidPayload	= "";
+	$scope.cloner_iosPayload		= "";
+	$scope.cloner_defaultPayload	= "";
+	$scope.cloner_OSes				= ['Windows', 'OS X', 'Android', 'iOS'];
 	$scope.cloner_stripLinks		= false;
 	$scope.cloner_stripJS			= false;
 	$scope.cloner_stripCSS			= false;
@@ -61,6 +72,26 @@ registerController('PortalAuthController', ['$api', '$scope', '$sce', '$interval
 	
 	// Payload elements
 	$scope.payloads = [];
+	
+	$scope.depends = (function(act) {
+		$scope.dependsProcessing = true;
+		$api.request({
+			module: 'PortalAuth',
+			action: 'depends',
+			params: act
+		},function(response){
+			if (act == "-check" || act == "-install") {
+				$scope.dependsInstalled = response.success;
+				if (act == "-install" && response.success === true) {
+					$scope.checkPortalExists();
+				}
+			}
+			if (act == "-remove") {
+				$scope.dependsInstalled = !response.success;
+			}
+			$scope.dependsProcessing = false;
+		});
+	});
 
 	$scope.getConfigs = (function(){
 		$api.request({
@@ -81,7 +112,7 @@ registerController('PortalAuthController', ['$api', '$scope', '$sce', '$interval
 			configs['dataExpected'] = $scope.dataExpected;
 			configs['p_archive'] = $scope.portalArchive;
 		} else {
-			configs['testSite'] = "http://www.puffycode.com/cptest.html";
+			configs['testSite'] = "https://www.puffycode.com/cptest.html";
 			configs['dataExpected'] = "No Captive Portal";
 			configs['p_archive'] = "/root/portals/";
 		}
@@ -321,6 +352,7 @@ registerController('PortalAuthController', ['$api', '$scope', '$sce', '$interval
 		});
 	});
 	$scope.checkPortalExists = (function(){
+		$scope.checkingPortal = true;
 		$api.request({
 			module: 'PortalAuth',
 			action: 'checkPortalExists'
@@ -331,6 +363,7 @@ registerController('PortalAuthController', ['$api', '$scope', '$sce', '$interval
 			} else {
 				$scope.portalStatus = "No Captive Portal Detected";
 			}
+			$scope.checkingPortal = false;
 		});
 	});
 	$scope.newInjectionSet = (function(){
@@ -391,6 +424,25 @@ registerController('PortalAuthController', ['$api', '$scope', '$sce', '$interval
 			}
 		});
 	});
+	$scope.updateDefaultPayload = (function() {
+		// Set the Default Payload to Windows if no payloads are selected
+		if ($scope.cloner_windowsPayload.fileName == "None" && $scope.cloner_osxPayload.fileName == "None" && $scope.cloner_androidPayload.fileName == "None" && $scope.cloner_iosPayload.fileName == "None") {
+			$scope.cloner_defaultPayload = $scope.cloner_OSes[0];
+		} else {
+			if ($scope.cloner_windowsPayload.fileName != "None" && $scope.cloner_osxPayload.fileName == "None" && $scope.cloner_androidPayload.fileName == "None" && $scope.cloner_iosPayload.fileName == "None") {
+				$scope.cloner_defaultPayload = $scope.cloner_OSes[0];
+			}
+			if ($scope.cloner_osxPayload.fileName != "None" && $scope.cloner_windowsPayload.fileName == "None" && $scope.cloner_androidPayload.fileName == "None" && $scope.cloner_iosPayload.fileName == "None") {
+				$scope.cloner_defaultPayload = $scope.cloner_OSes[1];
+			}
+			if ($scope.cloner_androidPayload.fileName != "None" && $scope.cloner_windowsPayload.fileName == "None" && $scope.cloner_osxPayload.fileName == "None" && $scope.cloner_iosPayload.fileName == "None") {
+				$scope.cloner_defaultPayload = $scope.cloner_OSes[2];
+			}
+			if ($scope.cloner_iosPayload.fileName != "None" && $scope.cloner_windowsPayload.fileName == "None" && $scope.cloner_osxPayload.fileName == "None" && $scope.cloner_androidPayload.fileName == "None") {
+				$scope.cloner_defaultPayload = $scope.cloner_OSes[3];
+			}
+		}
+	});
 	$scope.clonePortal = (function(){
 		
 		// Make sure there is a portal name
@@ -399,6 +451,7 @@ registerController('PortalAuthController', ['$api', '$scope', '$sce', '$interval
 			return;
 		}
 		
+		// Make sure an injection set is selected
 		if ($scope.cloner_injectionSet == $scope.injectionSets[0]) {
 			alert("Please select an injection set.  If you wish to clone the site as is then select the Blank injection set.");
 			return;
@@ -419,10 +472,29 @@ registerController('PortalAuthController', ['$api', '$scope', '$sce', '$interval
 				}
 			}
 			
+			// Show the Pineapple throbber
 			$scope.showClonerThrobber = true;
 			
+			// Check for payloads if the payloader injection set was selected
+			var payloadOpts = {};
+			if ($scope.cloner_injectionSet == "Payloader") {
+				
+				// Get the default payload
+				$scope.updateDefaultPayload();
+				defPayload = ($scope.cloner_defaultPayload == "Windows") ? $scope.cloner_windowsPayload.fileName :
+							 ($scope.cloner_defaultPayload == "OS X") ? $scope.cloner_osxPayload.fileName :
+							 ($scope.cloner_defaultPayload == "Android") ? $scope.cloner_androidPayload.fileName :
+							 ($scope.cloner_defaultPayload == "iOS") ? $scope.cloner_iosPayload.fileName : '';
+							 
+
+				payloadOpts['windows'] = ($scope.cloner_windowsPayload.fileName != "None") ? $scope.cloner_windowsPayload.fileName : defPayload;
+				payloadOpts['osx'] = ($scope.cloner_osxPayload.fileName != "None") ? $scope.cloner_osxPayload.fileName : defPayload;
+				payloadOpts['android'] = ($scope.cloner_androidPayload.fileName != "None") ? $scope.cloner_androidPayload.fileName : defPayload;
+				payloadOpts['ios'] = ($scope.cloner_iosPayload.fileName != "None") ? $scope.cloner_iosPayload.fileName : defPayload;
+			}
+			
 			// Build the argument list for the cloned portal
-			clonerOpts = "";
+			var clonerOpts = "";
 			clonerOpts += $scope.cloner_stripLinks ? "striplinks;" : "";
 			clonerOpts += $scope.cloner_stripCSS ? "stripcss;" : "";
 			clonerOpts += $scope.cloner_stripJS ? "stripjs;" : "";
@@ -437,7 +509,8 @@ registerController('PortalAuthController', ['$api', '$scope', '$sce', '$interval
 				action: 'clonePortal',
 				name: $scope.cloner_portalName,
 				options: clonerOpts,
-				inject: $scope.cloner_injectionSet
+				inject: $scope.cloner_injectionSet,
+				payloads: JSON.stringify(payloadOpts)
 			},function(response){
 				if (response.success === true) {
 					if (response.message != null) {
@@ -454,9 +527,10 @@ registerController('PortalAuthController', ['$api', '$scope', '$sce', '$interval
 	});
 	$scope.prepareOptsModal = (function(){
 		$scope.getInjectionSets();
-		$scope.cloner_portalName 		= "";
+		$scope.getPayloads({fileName: 'None', filePath: ''});
 		$scope.cloner_portalName		= "";
 		$scope.cloner_injectionSet		= "";
+		$scope.cloner_defaultPayload	= $scope.cloner_OSes[0];
 		$scope.cloner_stripLinks		= false;
 		$scope.cloner_stripJS			= false;
 		$scope.cloner_stripCSS			= false;
@@ -580,7 +654,7 @@ registerController('PortalAuthController', ['$api', '$scope', '$sce', '$interval
 			$scope.uploading = false;
 		});
 	});
-	$scope.getPayloads = (function(){
+	$scope.getPayloads = (function(addObj = null){
 		$api.request({
 			module: 'PortalAuth',
 			action: 'getPayloads'
@@ -588,9 +662,19 @@ registerController('PortalAuthController', ['$api', '$scope', '$sce', '$interval
 			$scope.payloads = [];
 			for (var key in response.data) {
 				if (response.data.hasOwnProperty(key)) {
+					
 					var obj = {fileName: key, filePath: response.data[key]};
 					$scope.payloads.push(obj);
 				}
+			}
+			/* So hackish - it should not be done this way */
+			/* I did this to squash a race condition when loading the cloner options panel */
+			if (addObj != null) {
+				$scope.payloads.unshift(addObj);
+				$scope.cloner_windowsPayload	= $scope.payloads[0];
+				$scope.cloner_osxPayload		= $scope.payloads[0];
+				$scope.cloner_androidPayload	= $scope.payloads[0];
+				$scope.cloner_iosPayload		= $scope.payloads[0];
 			}
 		});
 	});
@@ -634,6 +718,7 @@ registerController('PortalAuthController', ['$api', '$scope', '$sce', '$interval
 	});
 
 	// Init functions
+	$scope.depends("-check");
 	$scope.isOnline();
 	$scope.checkTestServerConfig();
 	$scope.checkPortalExists();
