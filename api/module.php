@@ -604,6 +604,11 @@ class PortalAuth extends Module
 	}
 	
 	private function exportInjectionSet($setName) {
+		
+		if (!file_exists(__INCLUDES__ . "downloads")) {
+			mkdir(__INCLUDES__ . "downloads");
+		}
+		
 		$data = array();
 		$res = exec(__SCRIPTS__ . "packInjectionSet.sh " . $setName, $data);
 		if ($res != "Complete") {
