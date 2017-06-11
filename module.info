@@ -1,6 +1,6 @@
 {
     "title": "Portal Auth",
     "description": "Captive portal cloner and payload distributor.",
-    "version": "1.3",
+    "version": "1.4",
     "author": "sud0nick"
 }
