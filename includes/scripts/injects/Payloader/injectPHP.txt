@@ -1,21 +1,23 @@
 <?php
-/*
-	Enter the file names of your payloads here
-	If one is left blank then that type of device will download whatever $defaultPath points to
-*/
 
-$exe = "NetCli.exe";
-$app = "NetCli.app.zip";
-$apk = "";
-$ipa = "";
+/*==================*/
+/* v DO NOT MODIFY v  */
+/*==================*/
+
+$exe = "<EXE>";
+$app = "<APP>";
+$apk = "<APK>";
+$ipa = "<IPA>";
+
+/*==================*/
+/* ^ DO NOT MODIFY ^  */
+/*==================*/
 
 $base = "/download/";
 $exePath = $base . "windows/";
 $appPath = $base . "osx/";
 $apkPath = $base . "android/";
 $ipaPath = $base . "ios/";
-
-$defaultPath = $exePath . $exe;
 
 $destination = "http://". $_SERVER['HTTP_HOST'] . $_SERVER['HTTP_URI'] . "";
 
