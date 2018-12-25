@@ -161,7 +161,7 @@ class PortalCloner:
 					fname = str(rule.uri).split("/")[-1]
 					
 					# Download the resource
-					resourceURLs.append([rul.uri, fname])
+					resourceURLs.append([rule.uri, fname])
 					
 					# Parse the CSS to get image links
 					_key = "resources/" + fname
