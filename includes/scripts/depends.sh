@@ -9,7 +9,9 @@ fi
 
 if [[ "$1" == "-check" ]]; then
 	testCurl=$(opkg list-installed | grep -w 'curl')
-	if [ -z "$testCurl" ]; then
+  testLibCurl=$(opkg list-installed | grep -w 'libcurl4')
+  testCodecs=$(opkg list-installed | grep -w 'python-codecs')
+	if [ -z "$testCurl" ] || [ "$textLibCurl" ] || [ -z "$testCodecs" ]; then
 		echo "Not Installed";
 	else
 		echo "Installed";
@@ -18,8 +20,7 @@ fi
 
 if [[ "$1" == "-install" ]]; then
 	opkg update > /dev/null;
-	opkg install curl > /dev/null;
-	opkg install libcurl4 > /dev/null;
+	opkg install curl libcurl4 python-codecs > /dev/null;
 	echo "Complete"
 fi
 
